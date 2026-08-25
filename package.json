@@ -1,0 +1,32 @@
+{
+  "name": "donation-platform",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server\" \"npm run client\"",
+    "server": "npm --prefix backend start",
+    "client": "npm --prefix frontend start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Priyanshu845438/Donation-Platform.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/Priyanshu845438/Donation-Platform/issues"
+  },
+  "homepage": "https://github.com/Priyanshu845438/Donation-Platform#readme",
+  "description": "",
+  "devDependencies": {
+    "concurrently": "^9.2.0"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.0",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "exceljs": "^4.4.0",
+    "pdfkit": "^0.17.1"
+  }
+}

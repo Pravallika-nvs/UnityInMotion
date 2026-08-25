@@ -1,0 +1,97 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support Verified Causes | Donation Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link id="dynamic-google-fonts" rel="stylesheet">
+    <script>
+      tailwind.config = {
+        darkMode: 'class', // Enable dark mode
+        theme: {
+          extend: {
+            colors: {
+              'brand-deep-blue': 'var(--color-primary)',
+              'brand-royal-navy': 'var(--color-secondary)',
+              'brand-gold': 'var(--color-accent)',
+              'brand-light': 'var(--color-bg-primary)',
+              'brand-dark': 'var(--color-bg-dark-primary)',
+              'brand-dark-200': 'var(--color-bg-dark-secondary)',
+            },
+            fontFamily: {
+              'serif': ['var(--font-serif)', 'Merriweather', 'serif'],
+              'sans': ['var(--font-sans)', 'Poppins', 'sans-serif']
+            }
+          }
+        }
+      }
+    </script>
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.1.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.6.3",
+    "react/": "https://esm.sh/react@^19.1.0/",
+    "react-icons/": "https://esm.sh/react-icons@^5.5.0/",
+    "react-dom/": "https://esm.sh/react-dom@^19.1.0/",
+    "chart.js": "https://esm.sh/chart.js@^4.4.3",
+    "react-chartjs-2": "https://esm.sh/react-chartjs-2@^5.2.0",
+    "framer-motion": "https://esm.sh/framer-motion@^11.3.19",
+    "@google/genai": "https://esm.sh/@google/genai@^1.9.0",
+    "react-markdown": "https://esm.sh/react-markdown@^9.0.1",
+    "remark-gfm": "https://esm.sh/remark-gfm@^4.0.0"
+  }
+}
+</script>
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<style id="default-theme-styles">
+  :root {
+    --font-sans: 'Poppins';
+    --font-serif: 'Merriweather';
+    
+    /* Light Theme */
+    --color-primary: #003f5c;
+    --color-secondary: #2f4b7c;
+    --color-accent: #ffa600;
+    --color-bg-primary: #ffffff;
+    --color-bg-secondary: #f7f7f7;
+    --color-text-primary: #2d3748;
+    --color-text-secondary: #4a5568;
+    --color-text-headings: #003f5c;
+    --color-text-on-accent: #ffffff;
+    --color-border: #e2e8f0;
+
+    /* Dark Theme */
+    --color-bg-dark-primary: #1a202c;
+    --color-bg-dark-secondary: #2d3748;
+    --color-text-dark-primary: #f7fafc;
+    --color-text-dark-secondary: #a0aec0;
+    --color-text-dark-headings: #ffffff;
+    --color-border-dark: #4a5568;
+  }
+  
+  body {
+    background-color: var(--color-bg-primary);
+    color: var(--color-text-primary);
+    font-family: var(--font-sans), sans-serif;
+  }
+
+  .dark body {
+    background-color: var(--color-bg-dark-primary);
+    color: var(--color-text-dark-primary);
+  }
+</style>
+<style id="dynamic-theme-styles"></style>
+<link rel="stylesheet" href="/index.css">
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+</body>
+</html>
