@@ -65,29 +65,7 @@ const HomePage: React.FC = () => {
         </div>
       </section>
 
-      {/* Featured Campaigns */}
-      <section className="py-20 md:py-28">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-              <SectionWrapper>
-                <div className="text-center">
-                    <h2 className="text-3xl md:text-4xl font-bold font-serif text-navy-blue dark:text-white">Featured Campaigns</h2>
-                    <p className="mt-4 text-lg text-warm-gray-600 dark:text-gray-400">Discover campaigns that need your urgent attention.</p>
-                </div>
-                {loading ? (
-                  <div className="text-center py-12">Loading campaigns...</div>
-                ) : (
-                  <div className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                      {featuredCampaigns.map(campaign => (
-                          <CampaignCard key={campaign.id} campaign={campaign} />
-                      ))}
-                  </div>
-                )}
-                <div className="mt-12 text-center">
-                    <Button to="/explore" variant="secondary">View All Campaigns</Button>
-                </div>
-              </SectionWrapper>
-          </div>
-      </section>
+      
 
       {/* Why Choose Us Section */}
       <section className="bg-white dark:bg-brand-dark-200 py-20 md:py-28">

@@ -21,7 +21,6 @@ const AboutPage = lazy(() => import('./pages/AboutPage.tsx'));
 const ExplorePage = lazy(() => import('./pages/ExplorePage.tsx'));
 const CampaignDetailsPage = lazy(() => import('./pages/CampaignDetailsPage.tsx'));
 const DonatePage = lazy(() => import('./pages/DonatePage.tsx'));
-const JoinUsPage = lazy(() => import('./pages/JoinUsPage.tsx'));
 const ContactPage = lazy(() => import('./pages/ContactPage.tsx'));
 const LegalPage = lazy(() => import('./pages/LegalPage.tsx'));
 const LoginPage = lazy(() => import('./pages/LoginPage.tsx'));
@@ -129,7 +128,6 @@ const App: React.FC = () => {
                         <Route path="/explore" element={<ExplorePage />} />
                         <Route path="/campaign/:campaignId" element={<CampaignDetailsPage />} />
                         <Route path="/donate" element={<DonatePage />} />
-                        <Route path="/join-us" element={<JoinUsPage />} />
                         <Route path="/contact" element={<ContactPage />} />
                         <Route path="/legal" element={<LegalPage />} />
                         <Route path="/login" element={<LoginPage />} />
