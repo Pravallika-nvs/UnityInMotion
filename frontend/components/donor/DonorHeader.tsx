@@ -32,12 +32,7 @@ const DonorHeader: React.FC = () => {
     return (
         <header className="flex-shrink-0 bg-white dark:bg-brand-dark-200 shadow-sm p-4 flex justify-between items-center z-10 border-b border-gray-200 dark:border-gray-700">
             <div className="relative w-full max-w-xs">
-                <FiSearch className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400" />
-                <input
-                    type="text"
-                    placeholder="Search campaigns..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand-gold"
-                />
+                
             </div>
 
             <div className="flex items-center gap-4">

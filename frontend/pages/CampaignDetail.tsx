@@ -80,10 +80,12 @@ const CampaignDetail: React.FC = () => {
                         <p className="text-text-secondary text-lg leading-relaxed">{campaign.description || ''}</p>
                         
                         <div className="mt-10">
-                            <Button size="lg" variant="accent" className="w-full">
-                                <ion-icon name="heart-outline" className="mr-2"></ion-icon>
-                                Donate Now
-                            </Button>
+                            <Link to={`/donate?campaign=${campaign._id}`} className="block">
+                                <Button size="lg" variant="accent" className="w-full">
+                                    <ion-icon name="heart-outline" className="mr-2"></ion-icon>
+                                    Donate Now
+                                </Button>
+                            </Link>
                         </div>
                     </div>
                 </div>

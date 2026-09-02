@@ -9,7 +9,7 @@ interface ApiOptions {
 export const apiFetch = async <T,>(endpoint: string, options: ApiOptions = {}): Promise<T> => {
     const { method = 'GET', body } = options;
     
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem('authToken') || localStorage.getItem('token');
     
     const isFormData = body instanceof FormData;
 

@@ -9,7 +9,7 @@ const menuItems = [
     { label: 'NGOs', icon: <FiUsers />, to: '/donor/ngos' },
     { label: 'My Reports', icon: <FiFileText />, to: '/donor/reports' },
     { label: 'My Profile', icon: <FiUser />, to: '/donor/profile' },
-    { label: 'Settings', icon: <FiSettings />, to: '/donor/settings' },
+    //{ label: 'Settings', icon: <FiSettings />, to: '/donor/settings' },
 ];
 
 const DonorSidebar: React.FC = () => {

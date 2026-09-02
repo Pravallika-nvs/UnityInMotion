@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useToast } from '../../context/ToastContext';
-import { FiSearch, FiFilter, FiHeart, FiLoader } from 'react-icons/fi';
+import { FiSearch, FiHeart, FiLoader } from 'react-icons/fi';
+import { API_SERVER_URL, apiFetch } from '../../services/api';
 
 interface Campaign {
     _id: string;
@@ -12,9 +13,12 @@ interface Campaign {
     raisedAmount: number;
     endDate: string;
     category: string;
-    ngoId: {
-        organizationName: string;
+    ngoId?: {
+        ngoName?: string;
+        organizationName?: string;
     };
+    image?: string;
+    campaignImages?: string[];
     campaignImage?: string;
 }
 
@@ -26,6 +30,13 @@ const DonorCampaignListPage: React.FC = () => {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { addToast } = useToast();
+
+    const getAssetUrl = (path?: string) => {
+        if (!path) return undefined;
+        return path.startsWith('http') || path.startsWith('data:')
+            ? path
+            : `${API_SERVER_URL}${path.startsWith('/') ? path : `/${path}`}`;
+    };
 
     const categories = [
         'Education', 'Healthcare', 'Environment', 'Poverty', 'Animals', 
@@ -47,25 +58,16 @@ const DonorCampaignListPage: React.FC = () => {
             if (search) params.append('search', search);
             if (category) params.append('category', category);
 
-            const response = await fetch(`/api/donor/campaigns?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+            const data = await apiFetch(`/donor/campaigns?${params}`);
 
-            if (response.ok) {
-                const data = await response.json();
-                setCampaigns(data.data.campaigns);
-                setTotalPages(data.data.pagination.pages);
-            } else {
-                throw new Error('Failed to fetch campaigns');
+            setCampaigns(data.data.campaigns);
+            setTotalPages(data.data.pagination.pages);
+            } catch (error: any) {
+                addToast(error.message, 'error');
+            } finally {
+                setLoading(false);
             }
-        } catch (error: any) {
-            addToast(error.message, 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+        };
 
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -135,9 +137,9 @@ const DonorCampaignListPage: React.FC = () => {
                         {campaigns.map((campaign) => (
                             <div key={campaign._id} className="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
                                 <div className="h-48 bg-gray-200 dark:bg-gray-700 relative">
-                                    {campaign.campaignImage && (
+                                    {(campaign.campaignImage || campaign.image || campaign.campaignImages?.[0]) && (
                                         <img
-                                            src={campaign.campaignImage}
+                                            src={getAssetUrl(campaign.campaignImage || campaign.image || campaign.campaignImages?.[0])}
                                             alt={campaign.title}
                                             className="w-full h-full object-cover"
                                         />
@@ -153,7 +155,7 @@ const DonorCampaignListPage: React.FC = () => {
                                         {campaign.title}
                                     </h3>
                                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-3">
-                                        By {campaign.ngoId.organizationName}
+                                        By {campaign.ngoId?.ngoName || campaign.ngoId?.organizationName || 'Verified NGO'}
                                     </p>
                                     <p className="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-2">
                                         {campaign.description}
@@ -188,7 +190,7 @@ const DonorCampaignListPage: React.FC = () => {
                                             Ends: {new Date(campaign.endDate).toLocaleDateString()}
                                         </span>
                                         <Link
-                                            to={`/campaigns/${campaign._id}`}
+                                            to={`/donate?campaign=${campaign._id}`}
                                             className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                                         >
                                             <FiHeart className="mr-2" />
