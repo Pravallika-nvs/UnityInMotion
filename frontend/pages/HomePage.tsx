@@ -44,10 +44,6 @@ const HomePage: React.FC = () => {
           <p className="mt-6 max-w-2xl mx-auto text-lg md:text-xl text-gray-300">
             Join a community of changemakers. Donate with confidence to transparent, high-impact campaigns verified for your trust.
           </p>
-          <div className="mt-10 flex flex-col sm:flex-row gap-4 justify-center">
-            <Button to="/explore" variant="primary" className="text-lg">Explore Campaigns</Button>
-            <Button to="/join-us" variant="outline" className="text-lg border-white text-white hover:bg-white/10">Join as Donor</Button>
-          </div>
         </div>
       </section>
       

@@ -10,6 +10,18 @@ import { AuthContext } from '../context/AuthContext.tsx';
 import { useToast } from '../context/ToastContext.tsx';
 import { FiLogIn } from 'react-icons/fi';
 
+// Map user roles to their correct dashboard paths
+const getDashboardPath = (role: string): string => {
+  const roleMap: Record<string, string> = {
+    'admin': '/admin',
+    'ngo': '/ngo',
+    'company': '/company',
+    'donor': '/donor',
+    'user': '/donor',
+  };
+  return roleMap[role] || '/';
+};
+
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,15 +31,14 @@ const LoginPage: React.FC = () => {
   const { addToast } = useToast();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from?.pathname || '/';
 
   useEffect(() => {
-    // If user is already logged in, redirect them
+    // If user is already logged in, redirect them to their dashboard
     if (user) {
-        const redirectPath = user.role === 'admin' ? '/admin' : from;
+        const redirectPath = getDashboardPath(user.role);
         navigate(redirectPath, {replace: true});
     }
-  }, [user, navigate, from]);
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,7 +47,7 @@ const LoginPage: React.FC = () => {
       const loggedInUser = await login(email, password);
       if (loggedInUser) {
           addToast(`Welcome back, ${loggedInUser.name}!`, 'success');
-          const redirectPath = loggedInUser.role === 'admin' ? '/admin' : from;
+          const redirectPath = getDashboardPath(loggedInUser.role);
           navigate(redirectPath, { replace: true });
       } else {
         // This case might not be hit if api throws, but is a good fallback.
