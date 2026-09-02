@@ -1,6 +1,6 @@
 import type { User, Campaign, Notice, Task, Donation, DashboardData, SystemHealth, SecurityDashboardData } from './types.ts';
 
-const API_BASE = 'http://127.0.0.1:5000/api';;
+const API_BASE = 'http://127.0.0.1:5000/api';
 export const API_SERVER_URL = 'http://localhost:5000';
 export const DEFAULT_IMAGE_URL = `${API_SERVER_URL}/uploads/default-image.jpeg`;
 
@@ -40,10 +40,12 @@ const makeAbsoluteUrl = (path?: string | null): string => {
     if (!path || path.trim() === '') {
         return DEFAULT_IMAGE_URL;
     }
+
     // If it's a data URL or already absolute, return as is.
     if (path.startsWith('http') || path.startsWith('data:')) {
         return path;
     }
+
     const cleanedPath = path.startsWith('/') ? path : `/${path}`;
     return `${API_SERVER_URL}${cleanedPath}`;
 };
@@ -51,13 +53,14 @@ const makeAbsoluteUrl = (path?: string | null): string => {
 
 // Data Transformation Layer
 export const transformBackendCampaign = (backendCampaign: any): Campaign => {
-  const organizer = backendCampaign.ngoId || { 
-    fullName: 'Unknown', 
-    avatar: '', 
-    _id: '', 
-    approvalStatus: 'pending', 
-    isActive: false 
+  const organizer = backendCampaign.ngoId || {
+    fullName: 'Unknown',
+    avatar: '',
+    _id: '',
+    approvalStatus: 'pending',
+    isActive: false
   };
+
   const goal = backendCampaign.targetAmount || backendCampaign.goalAmount || 0;
   const raised = backendCampaign.currentAmount || backendCampaign.raisedAmount || 0;
 
@@ -70,8 +73,8 @@ export const transformBackendCampaign = (backendCampaign: any): Campaign => {
     }
   }
 
-  const organizerName = typeof backendCampaign.organizer === 'string' 
-      ? backendCampaign.organizer 
+  const organizerName = typeof backendCampaign.organizer === 'string'
+      ? backendCampaign.organizer
       : (organizer.ngoName || organizer.fullName || 'Unknown');
 
   const rawImages = backendCampaign.images || [];
@@ -144,45 +147,46 @@ export const transformBackendUser = (backendUser: any): User => {
   };
 };
 
+
 // === API ENDPOINTS ===
 
 // Authentication Endpoints
 export const authAPI = {
-  login: (credentials: { email: string, password: string }) => 
+  login: (credentials: { email: string, password: string }) =>
     request('/auth/login', {
       method: 'POST',
       body: JSON.stringify(credentials),
     }),
 
-  signup: (userData: any) => 
+  signup: (userData: any) =>
     request('/auth/register', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
 
-  logout: () => 
+  logout: () =>
     request('/auth/logout', {
       method: 'POST',
     }),
 
-  refreshToken: () => 
+  refreshToken: () =>
     request('/auth/refresh', {
       method: 'POST',
     }),
 
-  verifyEmail: (token: string) => 
+  verifyEmail: (token: string) =>
     request('/auth/verify-email', {
       method: 'POST',
       body: JSON.stringify({ token }),
     }),
 
-  forgotPassword: (email: string) => 
+  forgotPassword: (email: string) =>
     request('/auth/forgot-password', {
       method: 'POST',
       body: JSON.stringify({ email }),
     }),
 
-  resetPassword: (token: string, password: string) => 
+  resetPassword: (token: string, password: string) =>
     request('/auth/reset-password', {
       method: 'POST',
       body: JSON.stringify({ token, password }),
@@ -191,16 +195,18 @@ export const authAPI = {
 
 // Payment Gateway API
 export const paymentAPI = {
-  createOrder: (donationData: any) => 
+  createOrder: (donationData: any) =>
     request('/payment/create-order', {
       method: 'POST',
       body: JSON.stringify(donationData),
     }),
+
   verifyPayment: (paymentVerificationData: any) =>
     request('/payment/verify', {
       method: 'POST',
       body: JSON.stringify(paymentVerificationData)
     }),
+
   simulateSuccess: (data: any) => request('/payment/simulate-success', {
     method: 'POST',
     body: JSON.stringify(data)
@@ -223,25 +229,25 @@ export const userAPI = {
     return transformBackendUser(response.user || response);
   },
 
-  updateProfile: (profileData: any) => 
+  updateProfile: (profileData: any) =>
     request('/user/profile', {
       method: 'PUT',
       body: JSON.stringify(profileData),
     }),
 
-  uploadAvatar: (formData: FormData) => 
+  uploadAvatar: (formData: FormData) =>
     request('/user/avatar', {
       method: 'POST',
       body: formData,
     }),
 
-  changePassword: (currentPassword: string, newPassword: string) => 
+  changePassword: (currentPassword: string, newPassword: string) =>
     request('/user/change-password', {
       method: 'PUT',
       body: JSON.stringify({ currentPassword, newPassword }),
     }),
 
-  deleteAccount: () => 
+  deleteAccount: () =>
     request('/user/account', {
       method: 'DELETE',
     }),
@@ -281,24 +287,24 @@ export const campaignAPI = {
     return campaigns.map(transformBackendCampaign);
   },
 
-  create: (campaignData: any) => 
+  create: (campaignData: any) =>
     request('/campaigns', {
       method: 'POST',
       body: JSON.stringify(campaignData),
     }),
 
-  update: (campaignId: string, campaignData: any) => 
+  update: (campaignId: string, campaignData: any) =>
     request(`/campaigns/${campaignId}`, {
       method: 'PUT',
       body: JSON.stringify(campaignData),
     }),
 
-  delete: (campaignId: string) => 
+  delete: (campaignId: string) =>
     request(`/campaigns/${campaignId}`, {
       method: 'DELETE',
     }),
 
-  uploadImages: (campaignId: string, formData: FormData) => 
+  uploadImages: (campaignId: string, formData: FormData) =>
     request(`/campaigns/${campaignId}/images`, {
       method: 'POST',
       body: formData,
@@ -308,19 +314,19 @@ export const campaignAPI = {
 
 // Donation Endpoints
 export const donationAPI = {
-  create: (donationData: any) => 
+  create: (donationData: any) =>
     request('/donations/new', {
       method: 'POST',
       body: JSON.stringify(donationData),
     }),
 
-  getUserDonations: () => 
+  getUserDonations: () =>
     request('/donations/my-donations'),
 
-  getCampaignDonations: (campaignId: string) => 
+  getCampaignDonations: (campaignId: string) =>
     request(`/donations/campaign/${campaignId}`),
 
-  processPayment: (paymentData: any) => 
+  processPayment: (paymentData: any) =>
     request('/donations/process-payment', {
       method: 'POST',
       body: JSON.stringify(paymentData),
@@ -335,9 +341,9 @@ export const organizationAPI = {
       request('/organizations/companies/public')
     ]);
 
-    const ngos = ngoData.status === 'fulfilled' ? 
+    const ngos = ngoData.status === 'fulfilled' ?
       (ngoData.value.ngos || ngoData.value || []) : [];
-    const companies = companyData.status === 'fulfilled' ? 
+    const companies = companyData.status === 'fulfilled' ?
       (companyData.value.companies || companyData.value || []) : [];
 
     return {
@@ -386,6 +392,7 @@ export const taskAPI = {
             queryParams.append(key, value.toString());
         }
     });
+
     return request(`/user/tasks?${queryParams.toString()}`);
   },
 
@@ -509,8 +516,8 @@ export const adminAPI = {
         }
 
         const combinedUserData = {
-            ...userProfile.user,
-            profile: userProfile.profile,
+          ...userProfile.user,
+          profile: userProfile.profile,
         };
 
         return {
@@ -526,13 +533,13 @@ export const adminAPI = {
     }
   },
 
-  createUser: (userData: any) => 
+  createUser: (userData: any) =>
     request('/admin/users', {
       method: 'POST',
       body: JSON.stringify(userData),
     }),
 
-  updateUser: (userId: string, userData: any) => 
+  updateUser: (userId: string, userData: any) =>
     request(`/admin/users/${userId}/details`, {
       method: 'PUT',
       body: JSON.stringify(userData),
@@ -544,7 +551,7 @@ export const adminAPI = {
       body: JSON.stringify(profileData),
     }),
 
-  approveUser: (userId: string, status: 'approved' | 'rejected') => 
+  approveUser: (userId: string, status: 'approved' | 'rejected') =>
     request(`/admin/users/${userId}/approval`, {
       method: 'PUT',
       body: JSON.stringify({ approvalStatus: status }),
@@ -593,10 +600,10 @@ export const adminAPI = {
   // Settings Management
   getSettings: () => request('/admin/settings'),
 
-  generateNgoShareLink: (profileId: string) => 
+  generateNgoShareLink: (profileId: string) =>
     request(`/admin/ngos/${profileId}/share`, { method: 'POST' }),
 
-  generateCompanyShareLink: (profileId: string) => 
+  generateCompanyShareLink: (profileId: string) =>
     request(`/admin/companies/${profileId}/share`, { method: 'POST' }),
 
   getShareablePageDesign: async (shareId: string) => {
@@ -659,15 +666,15 @@ export const adminAPI = {
       body: JSON.stringify({ isActive }),
     }),
 
-  deleteCampaign: (campaignId: string) => 
+  deleteCampaign: (campaignId: string) =>
     request(`/admin/campaigns/${campaignId}`, {
       method: 'DELETE',
     }),
 
-  approveCampaign: (campaignId: string, status: 'approved' | 'rejected') => 
+  approveCampaign: (campaignId: string, status: 'approved' | 'rejected') =>
     adminAPI.updateCampaign(campaignId, { approvalStatus: status }),
 
-  generateCampaignShareLink: (campaignId: string) => 
+  generateCampaignShareLink: (campaignId: string) =>
     request(`/admin/campaigns/${campaignId}/share`, { method: 'POST' }),
 
   deleteCampaignFile: (campaignId: string, filePath: string) => {
@@ -718,18 +725,23 @@ export const adminAPI = {
                 queryParams.append(key, value.toString());
             }
         });
+
         const queryString = queryParams.toString();
         return request(`/admin/notices?${queryString}`);
     },
+
     createNotice: (data: Partial<Notice>) => request('/admin/notices', {
         method: 'POST',
         body: JSON.stringify(data),
     }),
+
     getNoticeById: (id: string): Promise<Notice> => request(`/admin/notices/${id}`),
+
     updateNotice: (id: string, data: Partial<Notice>) => request(`/admin/notices/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
     }),
+
     deleteNotice: (id: string) => request(`/admin/notices/${id}`, {
         method: 'DELETE',
     }),
@@ -744,12 +756,16 @@ export const adminAPI = {
               queryParams.append(key, value.toString());
           }
       });
-      return request(`/admin/donations?${queryParams.toString()}`);
+
+      // Backend donation listing route is mounted at /api/donations
+      return request(`/donations?${queryParams.toString()}`);
     },
+
     updateDonation: (id: string, data: Partial<Donation>) => request(`/admin/donations/${id}`, {
         method: 'PUT',
         body: JSON.stringify(data),
     }),
+
     deleteDonation: (id: string) => request(`/admin/donations/${id}`, {
         method: 'DELETE',
     }),
@@ -760,21 +776,21 @@ export const adminAPI = {
     getSettings: () => request('/admin/settings'),
     updateAppearanceSettings: (settings: any) => request('/admin/settings/appearance', {
       method: 'PUT',
-      body: JSON.stringify(settings)
+      body: JSON.stringify(settings),
     }),
-    updateRateLimiter: (data: any) => request('/admin/settings', { 
-      method: 'PUT', 
-      body: JSON.stringify({ category: 'rate_limiting', settings: data }) 
+    updateRateLimiter: (data: any) => request('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ category: 'rate_limiting', settings: data }),
     }),
-    updateBranding: (data: any) => request('/admin/settings', { 
-      method: 'PUT', 
-      body: JSON.stringify({ category: 'branding', settings: data }) 
+    updateBranding: (data: any) => request('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ category: 'branding', settings: data }),
     }),
     uploadLogo: (formData: FormData) => request('/admin/branding/logo', { method: 'PUT', body: formData }),
     uploadFavicon: (formData: FormData) => request('/admin/branding/favicon', { method: 'PUT', body: formData }),
-    updateEnvironment: (data: any) => request('/admin/settings', { 
-      method: 'PUT', 
-      body: JSON.stringify({ category: 'environment', settings: data }) 
+    updateEnvironment: (data: any) => request('/admin/settings', {
+      method: 'PUT',
+      body: JSON.stringify({ category: 'environment', settings: data }),
     }),
     changeUserPassword: (userId: string, data: any) => request(`/admin/users/${userId}/password`, { method: 'PUT', body: JSON.stringify(data) }),
     resetSettings: (data: any) => request('/admin/settings/reset', { method: 'POST', body: JSON.stringify(data) })
@@ -783,10 +799,10 @@ export const adminAPI = {
 
   // Dashboard & Reports
   dashboard: {
-    getOverview: (timeRange: string = '30d'): Promise<DashboardData> => 
+    getOverview: (timeRange: string = '30d'): Promise<DashboardData> =>
       request(`/admin/dashboard?timeRange=${timeRange}`),
 
-    getSystemHealth: (): Promise<{success: boolean, data: SystemHealth}> => 
+    getSystemHealth: (): Promise<{success: boolean, data: SystemHealth}> =>
       request('/admin/dashboard/system-health'),
 
     getSecurity: (): Promise<{success: boolean, data: SecurityDashboardData}> =>
@@ -798,18 +814,22 @@ export const adminAPI = {
         const queryParams = new URLSearchParams(filters);
         return request(`/admin/reports/users?${queryParams.toString()}`);
     },
+
     getCampaignsReport: async (filters: any) => {
         const queryParams = new URLSearchParams(filters);
         return request(`/admin/reports/campaigns?${queryParams.toString()}`);
     },
+
     getDonationsReport: async (filters: any) => {
         const queryParams = new URLSearchParams(filters);
         return request(`/admin/reports/donations?${queryParams.toString()}`);
     },
+
     getFinancialReport: async (filters: any) => {
         const queryParams = new URLSearchParams(filters);
         return request(`/admin/reports/financial?${queryParams.toString()}`);
     },
+
     exportReport: async (reportType: string, filters: any, format: 'pdf' | 'excel') => {
         const queryParams = new URLSearchParams({ ...filters, export: format });
         const url = `${API_BASE}/admin/reports/${reportType}?${queryParams.toString()}`;
@@ -849,16 +869,15 @@ export const getSharedProfile = async (shareId: string): Promise<{ user: User, c
         const userDetails = data.profile?.userId;
 
         if (!data || !data.profile || !userDetails?._id) {
-            console.error("Shared profile data structure not found in response for share ID:", shareId, response);
+            console.error("Shared profile data structure not found for share ID:", shareId, response);
             return null;
         }
 
-        // Combine the user details from `profile.userId` and the profile shell from `profile`
-        // so that transformBackendUser can process it correctly.
+        // Combine the user details from profile.userId and the profile shell from profile
         const combinedUserData = {
-            ...userDetails, // has _id, fullName, email
-            role: data.type, // role is at the top level of the data object
-            profile: data.profile, // contains all NGO/Company specific fields
+            ...userDetails,
+            role: data.type,
+            profile: data.profile,
         };
 
         return {
@@ -878,7 +897,7 @@ export const getSharedCampaign = async (shareId: string): Promise<{ campaign: Ca
         const data = response.data || response;
 
         if (!data || !data.campaign || !data.campaign._id) {
-            console.error("Shared campaign data structure not found in response for share ID:", shareId, response);
+            console.error("Shared campaign data structure not found in response for share ID:", shareId);
             return null;
         }
 
