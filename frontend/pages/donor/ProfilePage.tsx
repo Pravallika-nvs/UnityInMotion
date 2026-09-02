@@ -1,255 +1,303 @@
-
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../../hooks/useAuth';
-import { useToast } from '../../context/ToastContext';
-import { FiLoader, FiEdit, FiSave, FiX } from 'react-icons/fi';
+import React, { useEffect, useState } from 'react';
+import { API_SERVER_URL, apiFetch } from '../../services/api';
 
 interface UserProfile {
-    _id: string;
-    fullName: string;
-    email: string;
-    phone?: string;
-    bio?: string;
-    profileImage?: string;
-    role: string;
-    createdAt: string;
+  _id: string;
+  fullName: string;
+  email: string;
+  phoneNumber?: string;
+  role: string;
+  createdAt?: string;
+  profileImage?: string;
 }
 
-const DonorProfilePage: React.FC = () => {
-    const { user, updateUser } = useAuth();
-    const [profile, setProfile] = useState<UserProfile | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [editing, setEditing] = useState(false);
-    const [formData, setFormData] = useState({
-        fullName: '',
-        email: '',
-        phone: '',
-        bio: ''
-    });
-    const { addToast } = useToast();
+const ProfilePage: React.FC = () => {
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-    useEffect(() => {
-        fetchProfile();
-    }, []);
+  const [formData, setFormData] = useState({
+    fullName: '',
+    email: '',
+    phoneNumber: '',
+  });
 
-    const fetchProfile = async () => {
-        try {
-            const response = await fetch('/api/donor/profile', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
 
-            if (response.ok) {
-                const data = await response.json();
-                setProfile(data.data.user);
-                setFormData({
-                    fullName: data.data.user.fullName || '',
-                    email: data.data.user.email || '',
-                    phone: data.data.user.phone || '',
-                    bio: data.data.user.bio || ''
-                });
-            } else {
-                throw new Error('Failed to fetch profile');
-            }
-        } catch (error: any) {
-            addToast(error.message, 'error');
-        } finally {
-            setLoading(false);
-        }
-    };
+      const data = await apiFetch('/donor/profile');
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        try {
-            const response = await fetch('/api/donor/profile', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(formData)
-            });
+      if (data?.user) {
+        setProfile(data.user);
 
-            if (response.ok) {
-                const data = await response.json();
-                setProfile(data.data.user);
-                updateUser(data.data.user);
-                setEditing(false);
-                addToast('Profile updated successfully', 'success');
-            } else {
-                throw new Error('Failed to update profile');
-            }
-        } catch (error: any) {
-            addToast(error.message, 'error');
-        }
-    };
-
-    const handleCancel = () => {
         setFormData({
-            fullName: profile?.fullName || '',
-            email: profile?.email || '',
-            phone: profile?.phone || '',
-            bio: profile?.bio || ''
+          fullName: data.user.fullName || '',
+          email: data.user.email || '',
+          phoneNumber: data.user.phoneNumber || '',
         });
-        setEditing(false);
-    };
-
-    if (loading) {
-        return (
-            <div className="flex justify-center items-center h-full">
-                <FiLoader className="animate-spin h-8 w-8 text-blue-600" />
-            </div>
-        );
+      }
+    } catch (error) {
+      console.error('Failed to fetch profile:', error);
+      alert('Failed to load profile.');
+    } finally {
+      setLoading(false);
     }
+  };
 
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const { name, value } = e.target;
+
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setSaving(true);
+
+      const data = await apiFetch('/donor/profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          fullName: formData.fullName,
+          email: formData.email,
+          phoneNumber: formData.phoneNumber,
+        }),
+      });
+
+      if (data?.user) {
+        setProfile(data.user);
+
+        setFormData({
+          fullName: data.user.fullName || '',
+          email: data.user.email || '',
+          phoneNumber: data.user.phoneNumber || '',
+        });
+
+        setEditing(false);
+        alert('Profile updated successfully!');
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error);
+      alert('Failed to update profile.');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleCancel = () => {
+    if (!profile) return;
+
+    setFormData({
+      fullName: profile.fullName || '',
+      email: profile.email || '',
+      phoneNumber: profile.phoneNumber || '',
+    });
+
+    setEditing(false);
+  };
+
+  if (loading) {
     return (
-        <div className="max-w-4xl mx-auto space-y-6">
-            <div className="flex justify-between items-center">
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                    My Profile
-                </h1>
-                {!editing && (
-                    <button
-                        onClick={() => setEditing(true)}
-                        className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                    >
-                        <FiEdit className="mr-2" />
-                        Edit Profile
-                    </button>
-                )}
-            </div>
-
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md">
-                <div className="p-6">
-                    {editing ? (
-                        <form onSubmit={handleSubmit} className="space-y-6">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Full Name
-                                    </label>
-                                    <input
-                                        type="text"
-                                        value={formData.fullName}
-                                        onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Email
-                                    </label>
-                                    <input
-                                        type="email"
-                                        value={formData.email}
-                                        onChange={(e) => setFormData({...formData, email: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        required
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Phone
-                                    </label>
-                                    <input
-                                        type="tel"
-                                        value={formData.phone}
-                                        onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                    />
-                                </div>
-                                <div className="md:col-span-2">
-                                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Bio
-                                    </label>
-                                    <textarea
-                                        value={formData.bio}
-                                        onChange={(e) => setFormData({...formData, bio: e.target.value})}
-                                        rows={4}
-                                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white"
-                                        placeholder="Tell us about yourself..."
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex justify-end space-x-4">
-                                <button
-                                    type="button"
-                                    onClick={handleCancel}
-                                    className="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700"
-                                >
-                                    <FiX className="mr-2" />
-                                    Cancel
-                                </button>
-                                <button
-                                    type="submit"
-                                    className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                                >
-                                    <FiSave className="mr-2" />
-                                    Save Changes
-                                </button>
-                            </div>
-                        </form>
-                    ) : (
-                        <div className="space-y-6">
-                            <div className="flex items-center space-x-6">
-                                <div className="w-24 h-24 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
-                                    {profile?.profileImage ? (
-                                        <img
-                                            src={profile.profileImage}
-                                            alt={profile.fullName}
-                                            className="w-24 h-24 rounded-full object-cover"
-                                        />
-                                    ) : (
-                                        <span className="text-2xl font-bold text-gray-500 dark:text-gray-400">
-                                            {profile?.fullName?.charAt(0)?.toUpperCase()}
-                                        </span>
-                                    )}
-                                </div>
-                                <div>
-                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
-                                        {profile?.fullName}
-                                    </h2>
-                                    <p className="text-gray-600 dark:text-gray-400">
-                                        Donor since {new Date(profile?.createdAt || '').toLocaleDateString()}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Email
-                                    </h3>
-                                    <p className="text-gray-900 dark:text-white">
-                                        {profile?.email}
-                                    </p>
-                                </div>
-                                <div>
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Phone
-                                    </h3>
-                                    <p className="text-gray-900 dark:text-white">
-                                        {profile?.phone || 'Not provided'}
-                                    </p>
-                                </div>
-                                <div className="md:col-span-2">
-                                    <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Bio
-                                    </h3>
-                                    <p className="text-gray-900 dark:text-white">
-                                        {profile?.bio || 'No bio provided'}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-            </div>
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="text-lg text-gray-600">
+          Loading profile...
         </div>
+      </div>
     );
+  }
+
+  if (!profile) {
+    return (
+      <div className="flex items-center justify-center min-h-[500px]">
+        <div className="text-lg text-gray-600">
+          Unable to load profile.
+        </div>
+      </div>
+    );
+  }
+
+  const profileImage = profile.profileImage
+    ? profile.profileImage.startsWith('http')
+      ? profile.profileImage
+      : `${API_SERVER_URL}${profile.profileImage}`
+    : null;
+
+  return (
+    <div className="max-w-4xl mx-auto p-6">
+      <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-8">
+          <h1 className="text-3xl font-bold text-white">
+            My Profile
+          </h1>
+          <p className="text-blue-100 mt-1">
+            Manage your personal information
+          </p>
+        </div>
+
+        {/* Profile Content */}
+        <div className="p-6">
+          {/* Profile Picture */}
+          <div className="flex flex-col items-center mb-8">
+            {profileImage ? (
+              <img
+                src={profileImage}
+                alt="Profile"
+                className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg"
+              />
+            ) : (
+              <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center border-4 border-white shadow-lg">
+                <span className="text-4xl font-bold text-blue-600">
+                  {profile.fullName?.charAt(0)?.toUpperCase() || 'D'}
+                </span>
+              </div>
+            )}
+
+            <h2 className="text-2xl font-semibold text-gray-800 mt-4">
+              {profile.fullName}
+            </h2>
+
+            <span className="mt-2 px-4 py-1 rounded-full bg-blue-100 text-blue-700 text-sm font-medium capitalize">
+              {profile.role}
+            </span>
+          </div>
+
+          {/* Details */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Full Name
+              </label>
+
+              {editing ? (
+                <input
+                  type="text"
+                  name="fullName"
+                  value={formData.fullName}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">
+                  {profile.fullName || 'Not provided'}
+                </div>
+              )}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Email
+              </label>
+
+              {editing ? (
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">
+                  {profile.email || 'Not provided'}
+                </div>
+              )}
+            </div>
+
+            {/* Phone Number */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Phone Number
+              </label>
+
+              {editing ? (
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  value={formData.phoneNumber}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+              ) : (
+                <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">
+                  {profile.phoneNumber || 'Not provided'}
+                </div>
+              )}
+            </div>
+
+            {/* Account Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Account Type
+              </label>
+
+              <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800 capitalize">
+                {profile.role}
+              </div>
+            </div>
+          </div>
+
+          {/* Account Created */}
+          {profile.createdAt && (
+            <div className="mt-6">
+              <label className="block text-sm font-medium text-gray-600 mb-2">
+                Account Created
+              </label>
+
+              <div className="px-4 py-3 bg-gray-50 rounded-lg text-gray-800">
+                {new Date(profile.createdAt).toLocaleDateString()}
+              </div>
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div className="flex justify-end gap-3 mt-8">
+            {editing ? (
+              <>
+                <button
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className="px-5 py-2.5 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+                >
+                  {saving ? 'Saving...' : 'Save Changes'}
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setEditing(true)}
+                className="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+              >
+                Edit Profile
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 };
 
-export default DonorProfilePage;
+export default ProfilePage;

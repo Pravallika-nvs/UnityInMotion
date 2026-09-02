@@ -9,7 +9,7 @@ const menuItems = [
     { label: 'NGOs', icon: <FiUsers />, to: '/company/ngos' },
     { label: 'My Reports', icon: <FiFileText />, to: '/company/reports' },
     { label: 'My Profile', icon: <FiBriefcase />, to: '/company/profile' },
-    { label: 'Settings', icon: <FiSettings />, to: '/company/settings' },
+    //{ label: 'Settings', icon: <FiSettings />, to: '/company/settings' },
 ];
 
 const CompanySidebar: React.FC = () => {
