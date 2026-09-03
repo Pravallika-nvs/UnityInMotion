@@ -995,6 +995,7 @@ router.post("/create-user", authMiddleware(["admin"]), async (req, res) => {
                 ngoName: fullName,
                 email: email,
                 contactNumber: phoneNumber,
+                isActive: true
             });
         } else if (role === "company") {
             await company.create({
@@ -1002,6 +1003,7 @@ router.post("/create-user", authMiddleware(["admin"]), async (req, res) => {
                 companyName: fullName,
                 companyEmail: email,
                 companyPhoneNumber: phoneNumber,
+                isActive: true,
             });
         }
 
@@ -1023,33 +1025,73 @@ router.post("/create-user", authMiddleware(["admin"]), async (req, res) => {
     }
 });
 
-// User management - keep existing endpoint for backward compatibility
+// User management - create user and corresponding role profile
 router.post("/users", authMiddleware(["admin"]), async (req, res) => {
     try {
         const { fullName, email, password, phoneNumber, role } = req.body;
 
         if (!fullName || !email || !password || !phoneNumber || !role) {
-            return res.status(400).json({ message: "All fields are required" });
+            return res.status(400).json({
+                message: "All fields are required"
+            });
         }
 
+        // Normalize role
+        const normalizedRole = role.trim().toLowerCase();
+
+        // Check if user already exists
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            return res.status(400).json({
+                message: "User with this email already exists"
+            });
+        }
+
+        // Hash password
         const hashedPassword = await bcrypt.hash(password, 10);
+
+        // Create User
         const newUser = new User({
             fullName,
             email,
             phoneNumber,
             password: hashedPassword,
-            role,
+            role: normalizedRole,
             isVerified: true,
             isActive: true,
             approvalStatus: "approved",
         });
 
         await newUser.save();
+
+        // Create corresponding profile
+        if (normalizedRole === "ngo") {
+            await ngo.create({
+                userId: newUser._id,
+                ngoName: fullName,
+                email: email,
+                contactNumber: phoneNumber,
+                isActive: true
+            });
+        } else if (normalizedRole === "company") {
+            await company.create({
+                userId: newUser._id,
+                companyName: fullName,
+                companyEmail: email,
+                companyPhoneNumber: phoneNumber,
+                isActive: true
+            });
+        }
+
         res.status(201).json({
             message: "User created successfully",
             user: newUser,
         });
+
     } catch (error) {
+        console.error("Error creating user:", error);
+
         res.status(500).json({
             message: "Error creating user",
             error: error.message,

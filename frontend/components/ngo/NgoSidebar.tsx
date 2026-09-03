@@ -18,7 +18,7 @@ const menuItems = [
     { label: 'Companies', icon: <FiBriefcase />, to: '/ngo/companies', isSingle: true, path: '/ngo/companies' },
     { label: 'Users', icon: <FiUsers />, to: '/ngo/users', isSingle: true, path: '/ngo/users' },
     { label: 'Reports', icon: <FiFileText />, to: '/ngo/reports', isSingle: true, path: '/ngo/reports' },
-    { label: 'My Profile', icon: <FiUsers />, to: '/ngo/profile', isSingle: true, path: '/ngo/profile' },
+    //{ label: 'My Profile', icon: <FiUsers />, to: '/ngo/profile', isSingle: true, path: '/ngo/profile' },
     //{ label: 'Settings', icon: <FiSettings />, to: '/ngo/settings', isSingle: true, path: '/ngo/settings' },
 ];
 

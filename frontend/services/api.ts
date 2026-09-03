@@ -353,10 +353,31 @@ export const organizationAPI = {
   },
 
   getCompanies: async (): Promise<User[]> => {
-     const data = await request('/organizations/companies/public');
-     const companies = data.companies || (Array.isArray(data) ? data : []);
-     return companies.map(transformBackendUser);
-  },
+   const data = await request('/ngo/companies');
+   const companies = Array.isArray(data)
+      ? data
+      : (data.companies || []);
+
+   return companies.map((company: any) => {
+      const companyData = company.userId || company;
+
+      return transformBackendUser({
+         ...companyData,
+         _id: companyData._id || company._id,
+         fullName: companyData.fullName || company.companyName,
+         email: companyData.email || company.companyEmail,
+         phoneNumber: companyData.phoneNumber || company.companyPhoneNumber,
+         role: 'company',
+         isActive: company.isActive,
+         approvalStatus: company.approvalStatus || 'approved',
+         profileImage: company.profileImage || company.logo,
+         profile: {
+            ...company,
+            ...(companyData.profile || {})
+         }
+      });
+   });
+},
 
   getNgos: async (): Promise<User[]> => {
      const data = await request('/organizations/ngos/public');

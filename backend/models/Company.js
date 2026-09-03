@@ -5,7 +5,10 @@ const CompanySchema = new mongoose.Schema({
     companyName: { type: String, required: true },
     companyEmail: { type: String, required: true, unique: true },
     companyPhoneNumber: { type: String, required: true },
-    
+
+    // Company status
+    isActive: { type: Boolean, default: true },
+
     // Optional fields (null by default)
     registrationNumber: { type: String, default: null },
     companyAddress: { type: String, default: null },
