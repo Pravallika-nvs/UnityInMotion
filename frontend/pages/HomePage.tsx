@@ -52,10 +52,10 @@ const HomePage: React.FC = () => {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <SectionWrapper>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                    <StatCard icon={<FaHandHoldingHeart size={24} />} value="₹1.2 Cr+" label="Total Donations" />
-                    <StatCard icon={<FaCheckCircle size={24} />} value="150+" label="Active Campaigns" />
-                    <StatCard icon={<FaUsers size={24} />} value="85+" label="Verified NGOs" />
-                    <StatCard icon={<FaBuilding size={24} />} value="20+" label="Companies Partnered" />
+                    <StatCard icon={<FaHandHoldingHeart size={24} />} value="₹25k+" label="Total Donations" />
+                    <StatCard icon={<FaCheckCircle size={24} />} value="5+" label="Active Campaigns" />
+                    <StatCard icon={<FaUsers size={24} />} value="5+" label="Verified NGOs" />
+                    <StatCard icon={<FaBuilding size={24} />} value="5+" label="Companies Partnered" />
                 </div>
             </SectionWrapper>
         </div>
