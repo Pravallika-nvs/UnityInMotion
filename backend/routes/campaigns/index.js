@@ -6,12 +6,25 @@ const upload = require("../../middleware/uploadMiddleware");
 
 const router = express.Router();
 
-// Get all campaigns (public)
+
+// ============================================================
+// GET ALL APPROVED & ACTIVE CAMPAIGNS
+// Used by donors/public campaign pages
+// ============================================================
 router.get("/", async (req, res) => {
     try {
-        const { category, search, limit = 10, page = 1 } = req.query;
+        const {
+            category,
+            search,
+            limit = 10,
+            page = 1
+        } = req.query;
 
-        let query = { isActive: true };
+        // Only campaigns approved by admin and activated
+        let query = {
+            isActive: true,
+            approvalStatus: "approved"
+        };
 
         if (category) {
             query.category = category;
@@ -19,15 +32,34 @@ router.get("/", async (req, res) => {
 
         if (search) {
             query.$or = [
-                { title: { $regex: search, $options: 'i' } },
-                { description: { $regex: search, $options: 'i' } }
+                {
+                    title: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    campaignName: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                },
+                {
+                    description: {
+                        $regex: search,
+                        $options: "i"
+                    }
+                }
             ];
         }
 
         const campaigns = await Campaign.find(query)
             .populate("ngoId", "ngoName email")
             .limit(parseInt(limit))
-            .skip((parseInt(page) - 1) * parseInt(limit))
+            .skip(
+                (parseInt(page) - 1) *
+                parseInt(limit)
+            )
             .sort({ createdAt: -1 });
 
         const total = await Campaign.countDocuments(query);
@@ -38,118 +70,318 @@ router.get("/", async (req, res) => {
                 total,
                 page: parseInt(page),
                 limit: parseInt(limit),
-                pages: Math.ceil(total / parseInt(limit))
+                pages: Math.ceil(
+                    total / parseInt(limit)
+                )
             }
         });
+
     } catch (error) {
-        res.status(500).json({ message: "Error fetching campaigns", error: error.message });
+        console.error(
+            "Error fetching campaigns:",
+            error
+        );
+
+        res.status(500).json({
+            message: "Error fetching campaigns",
+            error: error.message
+        });
     }
 });
 
-// Get single campaign
+
+// ============================================================
+// GET NGO'S OWN CAMPAIGNS
+// IMPORTANT: This MUST come BEFORE /:id
+// ============================================================
+router.get(
+    "/my-campaigns",
+    authMiddleware(["ngo"]),
+    async (req, res) => {
+        try {
+            const userId =
+                req.user._id || req.user.id;
+
+            const campaigns = await Campaign.find({
+                createdBy: userId
+            })
+                .populate(
+                    "ngoId",
+                    "ngoName email website"
+                )
+                .sort({
+                    createdAt: -1
+                });
+
+            res.json({
+                campaigns
+            });
+
+        } catch (error) {
+            console.error(
+                "Error fetching NGO campaigns:",
+                error
+            );
+
+            res.status(500).json({
+                message: "Error fetching my campaigns",
+                error: error.message
+            });
+        }
+    }
+);
+
+
+// ============================================================
+// GET SINGLE CAMPAIGN
+// ============================================================
 router.get("/:id", async (req, res) => {
     try {
-        const campaign = await Campaign.findById(req.params.id)
-            .populate("ngoId", "ngoName email website");
+        const campaign = await Campaign.findById(
+            req.params.id
+        )
+            .populate(
+                "ngoId",
+                "ngoName email website"
+            );
 
         if (!campaign) {
-            return res.status(404).json({ message: "Campaign not found" });
+            return res.status(404).json({
+                message: "Campaign not found"
+            });
         }
 
         res.json(campaign);
+
     } catch (error) {
-        res.status(500).json({ message: "Error fetching campaign", error: error.message });
+        console.error(
+            "Error fetching campaign:",
+            error
+        );
+
+        res.status(500).json({
+            message: "Error fetching campaign",
+            error: error.message
+        });
     }
 });
 
-// Create campaign (NGO only)
-router.post("/", authMiddleware(["ngo"]), upload.fields([
-    { name: "campaignImage", maxCount: 1 },
-    { name: "documents", maxCount: 5 }
-]), async (req, res) => {
-    try {
-        const userId = req.user._id || req.user.id;
-        const ngo = await NGO.findOne({ userId });
 
-        if (!ngo) {
-            return res.status(404).json({ message: "NGO profile not found" });
+// ============================================================
+// CREATE CAMPAIGN - NGO ONLY
+// ============================================================
+router.post(
+    "/",
+    authMiddleware(["ngo"]),
+    upload.fields([
+        {
+            name: "campaignImage",
+            maxCount: 1
+        },
+        {
+            name: "documents",
+            maxCount: 5
         }
+    ]),
+    async (req, res) => {
+        try {
+            const userId =
+                req.user._id || req.user.id;
 
-        const campaignData = {
-            ...req.body,
-            ngoId: ngo._id,
-            createdBy: userId,
-            approvalStatus: "pending",
-            isActive: false
-        };
+            const ngo = await NGO.findOne({
+                userId
+            });
 
-        if (req.files?.campaignImage) {
-            campaignData.image = `/uploads/campaign/image/${req.files.campaignImage[0].filename}`;
+            if (!ngo) {
+                return res.status(404).json({
+                    message: "NGO profile not found"
+                });
+            }
+
+            const campaignData = {
+                ...req.body,
+
+                // Associate campaign with NGO profile
+                ngoId: ngo._id,
+
+                // Associate campaign with logged-in user
+                createdBy: userId,
+
+                // New NGO campaigns require admin approval
+                approvalStatus: "pending",
+
+                // Keep inactive until approved
+                isActive: false
+            };
+
+            if (req.files?.campaignImage) {
+                campaignData.image =
+                    `/uploads/campaign/image/${req.files.campaignImage[0].filename}`;
+            }
+
+            if (req.files?.documents) {
+                campaignData.documents =
+                    req.files.documents.map(
+                        file =>
+                            `/uploads/campaign/documents/${file.filename}`
+                    );
+            }
+
+            const campaign =
+                new Campaign(campaignData);
+
+            await campaign.save();
+
+            res.status(201).json({
+                message:
+                    "Campaign created successfully",
+                campaign
+            });
+
+        } catch (error) {
+            console.error(
+                "Error creating campaign:",
+                error
+            );
+
+            res.status(500).json({
+                message: "Error creating campaign",
+                error: error.message
+            });
         }
-
-        if (req.files?.documents) {
-            campaignData.documents = req.files.documents.map(file => `/uploads/campaign/documents/${file.filename}`);
-        }
-
-        const campaign = new Campaign(campaignData);
-        await campaign.save();
-
-        res.status(201).json({ message: "Campaign created successfully", campaign });
-    } catch (error) {
-        res.status(500).json({ message: "Error creating campaign", error: error.message });
     }
-});
+);
 
-// Update campaign
-router.put("/:id", authMiddleware(["ngo", "admin"]), async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { role } = req.user;
-        const userId = req.user._id || req.user.id;
 
-        let query = { _id: id };
+// ============================================================
+// UPDATE CAMPAIGN
+// NGO can update own campaign
+// Admin can update any campaign
+// ============================================================
+router.put(
+    "/:id",
+    authMiddleware(["ngo", "admin"]),
+    async (req, res) => {
+        try {
+            const {
+                id
+            } = req.params;
 
-        // If not admin, only allow NGO to update their own campaigns
-        if (role !== "admin") {
-            query.createdBy = userId;
+            const {
+                role
+            } = req.user;
+
+            const userId =
+                req.user._id || req.user.id;
+
+            let query = {
+                _id: id
+            };
+
+            // NGO can only update its own campaigns
+            if (role !== "admin") {
+                query.createdBy = userId;
+            }
+
+            const campaign =
+                await Campaign.findOneAndUpdate(
+                    query,
+                    req.body,
+                    {
+                        new: true
+                    }
+                );
+
+            if (!campaign) {
+                return res.status(404).json({
+                    message:
+                        "Campaign not found or unauthorized"
+                });
+            }
+
+            res.json({
+                message:
+                    "Campaign updated successfully",
+                campaign
+            });
+
+        } catch (error) {
+            console.error(
+                "Error updating campaign:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Error updating campaign",
+                error: error.message
+            });
         }
-
-        const campaign = await Campaign.findOneAndUpdate(query, req.body, { new: true });
-
-        if (!campaign) {
-            return res.status(404).json({ message: "Campaign not found or unauthorized" });
-        }
-
-        res.json({ message: "Campaign updated successfully", campaign });
-    } catch (error) {
-        res.status(500).json({ message: "Error updating campaign", error: error.message });
     }
-});
+);
 
-// Delete campaign
-router.delete("/:id", authMiddleware(["ngo", "admin"]), async (req, res) => {
-    try {
-        const { id } = req.params;
-        const { role } = req.user;
-        const userId = req.user._id || req.user.id;
 
-        let query = { _id: id };
+// ============================================================
+// DELETE CAMPAIGN
+// NGO can delete own campaign
+// Admin can delete any campaign
+// ============================================================
+router.delete(
+    "/:id",
+    authMiddleware(["ngo", "admin"]),
+    async (req, res) => {
+        try {
+            const {
+                id
+            } = req.params;
 
-        // If not admin, only allow NGO to delete their own campaigns
-        if (role !== "admin") {
-            query.createdBy = userId;
+            const {
+                role
+            } = req.user;
+
+            const userId =
+                req.user._id || req.user.id;
+
+            let query = {
+                _id: id
+            };
+
+            // NGO can only delete its own campaigns
+            if (role !== "admin") {
+                query.createdBy = userId;
+            }
+
+            const campaign =
+                await Campaign.findOneAndDelete(
+                    query
+                );
+
+            if (!campaign) {
+                return res.status(404).json({
+                    message:
+                        "Campaign not found or unauthorized"
+                });
+            }
+
+            res.json({
+                message:
+                    "Campaign deleted successfully"
+            });
+
+        } catch (error) {
+            console.error(
+                "Error deleting campaign:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Error deleting campaign",
+                error: error.message
+            });
         }
-
-        const campaign = await Campaign.findOneAndDelete(query);
-
-        if (!campaign) {
-            return res.status(404).json({ message: "Campaign not found or unauthorized" });
-        }
-
-        res.json({ message: "Campaign deleted successfully" });
-    } catch (error) {
-        res.status(500).json({ message: "Error deleting campaign", error: error.message });
     }
-});
+);
+
 
 module.exports = router;
