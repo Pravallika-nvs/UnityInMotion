@@ -81,6 +81,7 @@ const DonorNgoListPage = lazy(() => import('./pages/donor/NgoListPage.tsx'));
 const DonorReportsPage = lazy(() => import('./pages/donor/ReportsPage.tsx'));
 const DonorProfilePage = lazy(() => import('./pages/donor/ProfilePage.tsx'));
 const DonorSettingsPage = lazy(() => import('./pages/donor/SettingsPage.tsx'));
+const DonorNgoProfilePage = lazy(() => import('./pages/donor/DonorNgoProfilePage.tsx'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
@@ -223,6 +224,7 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<DonorDashboardPage />} />
             <Route path="campaigns" element={<DonorCampaignListPage />} />
             <Route path="ngos" element={<DonorNgoListPage />} />
+            <Route path="ngos/:ngoId" element={<DonorNgoProfilePage />} />
             <Route path="reports" element={<DonorReportsPage />} />
             <Route path="profile" element={<DonorProfilePage />} />
             <Route path="contact" element={<ContactPage />} />
