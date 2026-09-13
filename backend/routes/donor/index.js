@@ -206,6 +206,11 @@ router.get('/campaigns', auth(), async (req, res) => {
             req.query.category || ''
         ).trim();
 
+        const ngoId = String(
+            req.query.ngoId || ''
+        ).trim();
+
+        // Build the base query FIRST
         const query = {
             isActive: true,
             approvalStatus: 'approved',
@@ -214,6 +219,7 @@ router.get('/campaigns', auth(), async (req, res) => {
             }
         };
 
+        // Search filter
         if (search) {
             query.$or = [
                 {
@@ -237,12 +243,18 @@ router.get('/campaigns', auth(), async (req, res) => {
             ];
         }
 
+        // Category filter
         if (category) {
             query.category = category;
         }
 
+        // NGO filter
+        if (ngoId) {
+            query.ngoId = ngoId;
+        }
+
         console.log(
-            '🔵 Donor campaigns: starting query',
+            '🔵 Donor campaigns query:',
             query
         );
 
@@ -250,9 +262,11 @@ router.get('/campaigns', auth(), async (req, res) => {
             Campaign.find(query)
                 .populate(
                     'ngoId',
-                    'ngoName email logo contactNumber'
+                    'ngoName email logo contactNumber organizationName'
                 )
-                .sort({ createdAt: -1 })
+                .sort({
+                    createdAt: -1
+                })
                 .skip(skip)
                 .limit(limit)
                 .lean(),

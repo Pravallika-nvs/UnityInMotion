@@ -48,32 +48,41 @@ const DonorCampaignListPage: React.FC = () => {
     }, [page, search, category]);
 
     const fetchCampaigns = async () => {
-        try {
-            setLoading(true);
-            const params = new URLSearchParams({
-                page: page.toString(),
-                limit: '12'
-            });
-            
-            if (search) params.append('search', search);
-            if (category) params.append('category', category);
+    try {
+        setLoading(true);
 
-            const data = await apiFetch(`/donor/campaigns?${params}`);
+        const params = new URLSearchParams({
+            page: page.toString(),
+            limit: '12'
+        });
 
-            setCampaigns(data.data.campaigns);
-            setTotalPages(data.data.pagination.pages);
-            } catch (error: any) {
-                addToast(error.message, 'error');
-            } finally {
-                setLoading(false);
-            }
-        };
+        if (search) params.append('search', search);
+        if (category) params.append('category', category);
 
-    const handleSearch = (e: React.FormEvent) => {
-        e.preventDefault();
-        setPage(1);
-        fetchCampaigns();
-    };
+        // Filter campaigns by NGO when opened from "View Campaigns"
+        const ngoId = new URLSearchParams(window.location.search).get('ngo');
+
+        if (ngoId) {
+            params.append('ngoId', ngoId);
+        }
+
+        const data = await apiFetch(`/donor/campaigns?${params}`);
+
+        setCampaigns(data.data.campaigns);
+        setTotalPages(data.data.pagination.pages);
+
+    } catch (error: any) {
+        addToast(error.message, 'error');
+    } finally {
+        setLoading(false);
+    }
+};
+
+const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPage(1);
+    fetchCampaigns();
+};
 
     const getProgressPercentage = (raised: number, target: number) => {
         return Math.min((raised / target) * 100, 100);
