@@ -1,15 +1,120 @@
 import React, { useState } from 'react';
 import SectionWrapper from '../components/SectionWrapper.tsx';
 import Button from '../components/Button.tsx';
-import { FiMail, FiPhone, FiMapPin } from 'react-icons/fi';
+import {
+  FiMail,
+  FiPhone,
+  FiMapPin,
+  FiPaperclip,
+  FiX,
+  FiFile
+} from 'react-icons/fi';
 import { useToast } from '../context/ToastContext.tsx';
 import { apiFetch } from '../services/api';
+
+const MAX_FILES = 5;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+const ALLOWED_FILE_TYPES = [
+  'application/pdf',
+  'application/msword',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  'image/jpeg',
+  'image/png'
+];
+
+const ALLOWED_EXTENSIONS = [
+  '.pdf',
+  '.doc',
+  '.docx',
+  '.jpg',
+  '.jpeg',
+  '.png'
+];
 
 const ContactPage: React.FC = () => {
   const { addToast } = useToast();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
+  // ============================================================
+  // File selection
+  // ============================================================
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const files = Array.from(e.target.files || []);
+
+    if (files.length === 0) return;
+
+    // Maximum number of files
+    if (selectedFiles.length + files.length > MAX_FILES) {
+      addToast(
+        `You can attach a maximum of ${MAX_FILES} files.`,
+        'error'
+      );
+
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file types
+    const invalidFile = files.find(file => {
+      const extension = `.${file.name
+        .split('.')
+        .pop()
+        ?.toLowerCase()}`;
+
+      return (
+        !ALLOWED_FILE_TYPES.includes(file.type) &&
+        !ALLOWED_EXTENSIONS.includes(extension)
+      );
+    });
+
+    if (invalidFile) {
+      addToast(
+        `${invalidFile.name} is not a supported file type.`,
+        'error'
+      );
+
+      e.target.value = '';
+      return;
+    }
+
+    // Validate file sizes
+    const oversizedFile = files.find(
+      file => file.size > MAX_FILE_SIZE
+    );
+
+    if (oversizedFile) {
+      addToast(
+        `${oversizedFile.name} exceeds the 5 MB file size limit.`,
+        'error'
+      );
+
+      e.target.value = '';
+      return;
+    }
+
+    setSelectedFiles(prev => [...prev, ...files]);
+
+    // Allows the user to select the same file again
+    e.target.value = '';
+  };
+
+  // ============================================================
+  // Remove selected file
+  // ============================================================
+  const removeFile = (index: number) => {
+    setSelectedFiles(prev =>
+      prev.filter((_, fileIndex) => fileIndex !== index)
+    );
+  };
+
+  // ============================================================
+  // Submit contact form
+  // ============================================================
   const handleSendMessage = async (
     e: React.FormEvent<HTMLFormElement>
   ) => {
@@ -18,43 +123,90 @@ const ContactPage: React.FC = () => {
     if (isSubmitting) return;
 
     const form = e.currentTarget;
-    const formData = new FormData(form);
 
-    const name = String(formData.get('name') || '').trim();
-    const email = String(formData.get('email') || '').trim();
-    const subject = String(formData.get('subject') || '').trim();
-    const message = String(formData.get('message') || '').trim();
+    // Get ONLY the required text fields
+    const name = String(
+      (form.elements.namedItem('name') as HTMLInputElement)
+        ?.value || ''
+    ).trim();
 
-    if (!name || !email || !subject || !message) {
-      addToast('Please fill in all fields.', 'error');
-      return;
-    }
+    const email = String(
+      (form.elements.namedItem('email') as HTMLInputElement)
+        ?.value || ''
+    ).trim();
+
+    const subject = String(
+      (form.elements.namedItem('subject') as HTMLInputElement)
+        ?.value || ''
+    ).trim();
+
+    const message = String(
+      (form.elements.namedItem('message') as HTMLTextAreaElement)
+        ?.value || ''
+    ).trim();
+
+    // Only these four fields are required.
+    // Attachments are completely optional.
+
+    console.log('CONTACT FORM VALUES:', {
+  name,
+  email,
+  subject,
+  message,
+  selectedFiles
+});
+
+if (!name || !email || !subject || !message) {
+  addToast(
+    `Missing: ${
+      !name ? 'Name ' : ''
+    }${
+      !email ? 'Email ' : ''
+    }${
+      !subject ? 'Subject ' : ''
+    }${
+      !message ? 'Message' : ''
+    }`,
+    'error'
+  );
+  return;
+}
 
     setIsSubmitting(true);
 
     try {
+      // Create multipart form data
+      const contactFormData = new FormData();
+
+      contactFormData.append('name', name);
+      contactFormData.append('email', email);
+      contactFormData.append('subject', subject);
+      contactFormData.append('message', message);
+
+      // Attach files ONLY if the user selected any
+      selectedFiles.forEach(file => {
+        contactFormData.append('attachments', file);
+      });
+
       console.log('📤 Sending contact form:', {
         name,
         email,
         subject,
-        message
+        message,
+        attachments: selectedFiles.map(file => file.name)
       });
 
       const response = await apiFetch('/contact', {
         method: 'POST',
-        body: JSON.stringify({
-          name,
-          email,
-          subject,
-          message
-        })
+        body: contactFormData
       });
 
       console.log('📥 Contact API response:', response);
 
       if (!response || response.success === false) {
         throw new Error(
-          response?.message || 'Failed to send your message.'
+          response?.message ||
+            'Failed to send your message.'
         );
       }
 
@@ -63,10 +215,15 @@ const ContactPage: React.FC = () => {
         'success'
       );
 
+      // Reset form and selected files
       form.reset();
+      setSelectedFiles([]);
 
     } catch (error: any) {
-      console.error('❌ Contact form error:', error);
+      console.error(
+        '❌ Contact form error:',
+        error
+      );
 
       addToast(
         error?.message ||
@@ -82,7 +239,9 @@ const ContactPage: React.FC = () => {
   return (
     <div className="bg-warm-gray font-sans">
 
-      {/* Header */}
+      {/* ========================================================
+          Header
+      ======================================================== */}
       <div className="bg-white py-16">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
 
@@ -104,7 +263,9 @@ const ContactPage: React.FC = () => {
 
           <div className="grid md:grid-cols-2 gap-12">
 
-            {/* Contact Form */}
+            {/* ==================================================
+                Contact Form
+            ================================================== */}
             <div className="bg-white p-8 rounded-lg shadow-lg">
 
               <h2 className="text-2xl font-bold font-serif text-navy-blue mb-6">
@@ -118,7 +279,6 @@ const ContactPage: React.FC = () => {
 
                 {/* Name */}
                 <div>
-
                   <label
                     htmlFor="name"
                     className="sr-only"
@@ -135,12 +295,10 @@ const ContactPage: React.FC = () => {
                     required
                     className="block w-full shadow-sm py-3 px-4 placeholder-warm-gray-500 focus:ring-sky-blue focus:border-sky-blue border-warm-gray-300 rounded-md"
                   />
-
                 </div>
 
                 {/* Email */}
                 <div>
-
                   <label
                     htmlFor="email"
                     className="sr-only"
@@ -157,12 +315,10 @@ const ContactPage: React.FC = () => {
                     required
                     className="block w-full shadow-sm py-3 px-4 placeholder-warm-gray-500 focus:ring-sky-blue focus:border-sky-blue border-warm-gray-300 rounded-md"
                   />
-
                 </div>
 
                 {/* Subject */}
                 <div>
-
                   <label
                     htmlFor="subject"
                     className="sr-only"
@@ -178,12 +334,10 @@ const ContactPage: React.FC = () => {
                     required
                     className="block w-full shadow-sm py-3 px-4 placeholder-warm-gray-500 focus:ring-sky-blue focus:border-sky-blue border-warm-gray-300 rounded-md"
                   />
-
                 </div>
 
                 {/* Message */}
                 <div>
-
                   <label
                     htmlFor="message"
                     className="sr-only"
@@ -199,6 +353,80 @@ const ContactPage: React.FC = () => {
                     required
                     className="block w-full shadow-sm py-3 px-4 placeholder-warm-gray-500 focus:ring-sky-blue focus:border-sky-blue border border-warm-gray-300 rounded-md"
                   />
+                </div>
+
+                {/* ==================================================
+                    Attach Files
+                ================================================== */}
+                <div>
+
+                  <label
+                    htmlFor="attachments"
+                    className="flex items-center justify-center gap-2 w-full border-2 border-dashed border-warm-gray-300 rounded-md px-4 py-4 cursor-pointer hover:border-sky-blue hover:bg-gray-50 transition-colors"
+                  >
+                    <FiPaperclip className="h-5 w-5 text-sky-blue" />
+
+                    <span className="text-warm-gray-700 font-medium">
+                      Attach Files
+                    </span>
+
+                    <span className="text-sm text-warm-gray-500">
+                      (optional)
+                    </span>
+                  </label>
+
+                  <input
+                    id="attachments"
+                    name="attachments"
+                    type="file"
+                    multiple
+                    accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                    onChange={handleFileChange}
+                    className="sr-only"
+                  />
+
+                  <p className="mt-2 text-xs text-warm-gray-500">
+                    PDF, DOC, DOCX, JPG, JPEG, PNG • Maximum 5 files •
+                    5 MB per file
+                  </p>
+
+                  {/* Selected files */}
+                  {selectedFiles.length > 0 && (
+                    <div className="mt-4 space-y-2">
+
+                      {selectedFiles.map((file, index) => (
+                        <div
+                          key={`${file.name}-${index}`}
+                          className="flex items-center justify-between bg-warm-gray-100 rounded-md px-3 py-2"
+                        >
+
+                          <div className="flex items-center min-w-0">
+
+                            <FiFile className="flex-shrink-0 mr-2 text-sky-blue" />
+
+                            <span
+                              className="text-sm text-warm-gray-700 truncate"
+                              title={file.name}
+                            >
+                              {file.name}
+                            </span>
+
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => removeFile(index)}
+                            className="ml-3 flex-shrink-0 text-warm-gray-500 hover:text-red-500 transition-colors"
+                            aria-label={`Remove ${file.name}`}
+                          >
+                            <FiX className="h-5 w-5" />
+                          </button>
+
+                        </div>
+                      ))}
+
+                    </div>
+                  )}
 
                 </div>
 
@@ -221,7 +449,9 @@ const ContactPage: React.FC = () => {
 
             </div>
 
-            {/* Contact Information */}
+            {/* ==================================================
+                Contact Information
+            ================================================== */}
             <div className="space-y-8">
 
               <div className="bg-white p-8 rounded-lg shadow-lg">

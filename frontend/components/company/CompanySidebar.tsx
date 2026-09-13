@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FiGrid, FiHeart, FiSettings, FiFileText, FiBriefcase, FiUsers } from 'react-icons/fi';
+import { FiGrid, FiHeart, FiSettings, FiFileText, FiBriefcase, FiUsers, FiMail } from 'react-icons/fi';
 
 const menuItems = [
     { label: 'Dashboard', icon: <FiGrid />, to: '/company/dashboard' },
@@ -10,6 +10,7 @@ const menuItems = [
     { label: 'My Reports', icon: <FiFileText />, to: '/company/reports' },
     { label: 'My Profile', icon: <FiBriefcase />, to: '/company/profile' },
     //{ label: 'Settings', icon: <FiSettings />, to: '/company/settings' },
+    { label: 'Contact Us', icon: <FiMail />, to: '/donor/contact', isSingle: true, path: '/company/contact' }
 ];
 
 const CompanySidebar: React.FC = () => {

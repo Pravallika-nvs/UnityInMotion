@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { FiGrid, FiHeart, FiSettings, FiFileText, FiUsers, FiUser } from 'react-icons/fi';
+import { FiGrid, FiHeart, FiSettings, FiFileText, FiUsers, FiUser, FiMail } from 'react-icons/fi';
 
 const menuItems = [
     { label: 'Dashboard', icon: <FiGrid />, to: '/donor/dashboard' },
@@ -9,6 +9,7 @@ const menuItems = [
     { label: 'NGOs', icon: <FiUsers />, to: '/donor/ngos' },
     { label: 'My Reports', icon: <FiFileText />, to: '/donor/reports' },
     { label: 'My Profile', icon: <FiUser />, to: '/donor/profile' },
+    { label: 'Contact Us', icon: <FiMail />, to: '/donor/contact', isSingle: true, path: '/donor/contact' }
     //{ label: 'Settings', icon: <FiSettings />, to: '/donor/settings' },
 ];
 
