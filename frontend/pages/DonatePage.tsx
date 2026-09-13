@@ -398,7 +398,7 @@ const DonatePage: React.FC = () => {
             </p>
 
             <div className="mt-8">
-              <Button to="/explore">
+              <Button to="/donor/campaigns">
                 Explore More Campaigns
               </Button>
             </div>
