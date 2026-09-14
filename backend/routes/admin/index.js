@@ -1231,7 +1231,7 @@ router.put(
 router.get("/ngos", authMiddleware(["admin"]), async (req, res) => {
     try {
         const ngos = await ngo.find().populate("userId", "fullName email");
-        res.json(ngos);
+        res.json({ ngos });
     } catch (error) {
         res.status(500).json({
             message: "Error fetching ngos",

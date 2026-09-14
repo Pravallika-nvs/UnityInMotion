@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 import StatCard from '../../components/dashboard/StatCard';
 import Button from '../../components/common/Button';
 
@@ -40,11 +40,11 @@ const CompanyReportsPage: React.FC = () => {
         const fetchReports = async () => {
             try {
                 const [donationsResponse, statsResponse] = await Promise.all([
-                    apiFetch<{ donations: DonationReport[] }>('/company/donations'),
-                    apiFetch<ReportStats>('/company/reports/stats')
-                ]);
-                
-                setDonations(donationsResponse.donations);
+                apiFetch<{ success: boolean; data: { donations: DonationReport[] } }>('/company/donations'),
+                apiFetch<ReportStats>('/company/reports/stats')
+]);
+
+                setDonations(donationsResponse.data?.donations || []);
                 setStats(statsResponse);
             } catch (error: any) {
                 addToast(error.message || 'Failed to fetch reports', 'error');

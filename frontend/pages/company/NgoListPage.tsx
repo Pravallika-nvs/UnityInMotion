@@ -1,7 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../services/api';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 import Button from '../../components/common/Button';
 
 interface NGO {
@@ -18,6 +19,7 @@ interface NGO {
 }
 
 const CompanyNgoListPage: React.FC = () => {
+    const navigate = useNavigate();
     const { addToast } = useToast();
     const [ngos, setNgos] = useState<NGO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -27,7 +29,7 @@ const CompanyNgoListPage: React.FC = () => {
         const fetchNgos = async () => {
             try {
                 const response = await apiFetch<{ ngos: NGO[] }>('/company/ngos');
-                setNgos(response.ngos);
+                setNgos(response || []);
             } catch (error: any) {
                 addToast(error.message || 'Failed to fetch NGOs', 'error');
             } finally {
@@ -136,6 +138,7 @@ const CompanyNgoListPage: React.FC = () => {
                                     variant="outline"
                                     size="sm"
                                     className="flex-1"
+                                    onClick={() => navigate(`/company/ngos/${ngo._id}`)}
                                 >
                                     View Campaigns
                                 </Button>
