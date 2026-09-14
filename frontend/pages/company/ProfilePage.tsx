@@ -1,13 +1,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 import { apiFetch } from '../../services/api';
 import Button from '../../components/common/Button';
 
 interface CompanyProfile {
     _id: string;
     companyName: string;
-    email: string;
+    companyEmail: string;
     website?: string;
     companyAddress?: string;
     ceoName?: string;
@@ -53,7 +53,7 @@ const CompanyProfilePage: React.FC = () => {
             const { _id, companyLogo, isVerified, ...updateData } = profile;
             await apiFetch('/company/profile', {
                 method: 'PUT',
-                body: updateData
+                body: JSON.stringify(updateData)
             });
             addToast('Company Profile updated successfully!', 'success');
         } catch (error: any) {
@@ -129,8 +129,8 @@ const CompanyProfilePage: React.FC = () => {
                             <input id="companyName" name="companyName" type="text" required value={profile.companyName || ''} onChange={handleInputChange} className={inputStyles} />
                         </div>
                          <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
-                            <input id="email" name="email" type="email" required value={profile.email || ''} onChange={handleInputChange} className={inputStyles} />
+                            <label htmlFor="companyEmail" className="block text-sm font-medium text-gray-700 mb-1">Email *</label>
+                            <input id="companyEmail" name="companyEmail" type="email" required value={profile.companyEmail || ''} onChange={handleInputChange} className={inputStyles} />
                         </div>
                          <div>
                             <label htmlFor="website" className="block text-sm font-medium text-gray-700 mb-1">Website</label>
@@ -164,10 +164,10 @@ const CompanyProfilePage: React.FC = () => {
                             <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">Company Description</label>
                             <textarea id="description" name="description" rows={4} value={profile.description || ''} onChange={handleInputChange} className={inputStyles} />
                         </div>
-                        <div className="md:col-span-2 text-right">
-                            <Button type="submit" variant="primary" disabled={isSubmitting}>
-                                {isSubmitting ? "Saving..." : "Save Changes"}
-                            </Button>
+                        <div className="md:col-span-2 flex justify-end pt-4 border-t border-gray-200">
+                        <Button type="submit" variant="primary" className="text-black" disabled={isSubmitting}>
+                            {isSubmitting ? "Updating..." : "Update Profile"}
+                        </Button>
                         </div>
                     </div>
                 </form>

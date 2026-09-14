@@ -12,6 +12,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute.tsx';
 import AuthenticatedRoute from './components/auth/AuthenticatedRoute.tsx';
 import AIChatbot from './components/AIChatbot.tsx';
 import ToastContainer from './components/ToastContainer.tsx';
+import { ToastProvider } from './context/ToastContext.tsx';
 import DynamicThemeLoader from './components/DynamicThemeLoader.tsx';
 import { FiHeart } from 'react-icons/fi';
 
@@ -69,6 +70,7 @@ import NgoUserListPage from './pages/ngo/UserListPage.tsx';
 const CompanyDashboardPage = lazy(() => import('./pages/company/DashboardPage.tsx'));
 const CompanyCampaignListPage = lazy(() => import('./pages/company/CampaignListPage.tsx'));
 const CompanyNgoListPage = lazy(() => import('./pages/company/NgoListPage.tsx'));
+const CompanyNgoDetailsPage = lazy(() => import('./pages/company/NgoDetailsPage.tsx'));
 const CompanyReportsPage = lazy(() => import('./pages/company/ReportsPage.tsx'));
 const CompanyProfilePage = lazy(() => import('./pages/company/ProfilePage.tsx'));
 const CompanySettingsPage = lazy(() => import('./pages/company/SettingsPage.tsx'));
@@ -115,6 +117,7 @@ const MainLayout = () => (
 
 const App: React.FC = () => {
     return (
+        <ToastProvider>
         <BrowserRouter>
             <DynamicThemeLoader />
             <ScrollToTop />
@@ -199,6 +202,7 @@ const App: React.FC = () => {
                         <Route path="dashboard" element={<CompanyDashboardPage />} />
                         <Route path="campaigns" element={<CompanyCampaignListPage />} />
                         <Route path="ngos" element={<CompanyNgoListPage />} />
+                        <Route path="ngos/:id" element={<CompanyNgoDetailsPage />} />
                         <Route path="reports" element={<CompanyReportsPage />} />
                         <Route path="profile" element={<CompanyProfilePage />} />
                         <Route path="settings" element={<CompanySettingsPage />} />
@@ -231,6 +235,7 @@ const App: React.FC = () => {
             </Routes>
             </Suspense>
         </BrowserRouter>
+        </ToastProvider>
     );
 };
 

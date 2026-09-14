@@ -5,7 +5,7 @@ import { apiFetch } from '../../services/api';
 import StatCard from '../../components/dashboard/StatCard';
 import Button from '../../components/common/Button';
 import { Link } from 'react-router-dom';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 
 interface DashboardData {
     totalDonations: number;

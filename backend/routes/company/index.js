@@ -6,8 +6,11 @@ const Campaign = require("../../models/Campaign");
 const Donation = require("../../models/Donation");
 const authMiddleware = require("../../middleware/auth");
 const upload = require("../../middleware/uploadMiddleware");
+const PDFDocument = require("pdfkit");
+const ExcelJS = require("exceljs");
 
 const router = express.Router();
+
 
 // Dashboard
 router.get("/dashboard", authMiddleware(["company"]), async (req, res) => {
@@ -265,6 +268,225 @@ router.get("/reports/stats", authMiddleware(["company"]), async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ message: "Error fetching report stats", error: error.message });
+    }
+});
+
+// Export company reports as PDF or Excel
+router.get("/reports/export", authMiddleware(["company"]), async (req, res) => {
+    try {
+        const userId = req.user._id || req.user.id;
+        const { format } = req.query;
+
+        if (!["pdf", "excel"].includes(format)) {
+            return res.status(400).json({
+                message: "Invalid export format. Use pdf or excel."
+            });
+        }
+
+        const company = await Company.findOne({ userId });
+
+        if (!company) {
+            return res.status(404).json({
+                message: "Company profile not found"
+            });
+        }
+
+        const donations = await Donation.find({
+            companyId: company._id
+        })
+            .populate({
+                path: "campaignId",
+                select: "title ngoId",
+                populate: {
+                    path: "ngoId",
+                    select: "ngoName"
+                }
+            })
+            .sort({ createdAt: -1 });
+
+        // =========================
+        // PDF EXPORT
+        // =========================
+        if (format === "pdf") {
+            const doc = new PDFDocument({
+                margin: 50
+            });
+
+            res.setHeader(
+                "Content-Type",
+                "application/pdf"
+            );
+
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="company-report-${Date.now()}.pdf"`
+            );
+
+            doc.pipe(res);
+
+            doc.fontSize(20)
+                .text("Corporate Social Responsibility Report", {
+                    align: "center"
+                });
+
+            doc.moveDown();
+
+            doc.fontSize(12)
+                .text(`Company: ${company.companyName || "Company"}`);
+
+            doc.text(`Generated: ${new Date().toLocaleDateString("en-IN")}`);
+
+            doc.moveDown();
+
+            const totalAmount = donations.reduce(
+                (sum, donation) => sum + donation.amount,
+                0
+            );
+
+            doc.fontSize(14)
+                .text("Summary", {
+                    underline: true
+                });
+
+            doc.moveDown(0.5);
+
+            doc.fontSize(11)
+                .text(`Total Donations: ${donations.length}`);
+
+            doc.text(
+                `Total Amount Donated: ₹${totalAmount.toLocaleString("en-IN")}`
+            );
+
+            doc.moveDown();
+
+            doc.fontSize(14)
+                .text("Donation History", {
+                    underline: true
+                });
+
+            doc.moveDown();
+
+            if (donations.length === 0) {
+                doc.fontSize(11)
+                    .text("No donations found.");
+            } else {
+                donations.forEach((donation, index) => {
+                    const campaignName =
+                        donation.campaignId?.title || "N/A";
+
+                    const ngoName =
+                        donation.campaignId?.ngoId?.ngoName || "N/A";
+
+                    const status =
+                        donation.status || "N/A";
+
+                    const date = donation.createdAt
+                        ? new Date(donation.createdAt).toLocaleDateString("en-IN")
+                        : "N/A";
+
+                    doc.fontSize(10)
+                        .text(`${index + 1}. ${campaignName}`);
+
+                    doc.text(`   NGO: ${ngoName}`);
+                    doc.text(
+                        `   Amount: ₹${donation.amount.toLocaleString("en-IN")}`
+                    );
+                    doc.text(`   Status: ${status}`);
+                    doc.text(`   Date: ${date}`);
+
+                    doc.moveDown(0.5);
+                });
+            }
+
+            doc.end();
+            return;
+        }
+
+        // =========================
+        // EXCEL EXPORT
+        // =========================
+        if (format === "excel") {
+            const workbook = new ExcelJS.Workbook();
+
+            const worksheet = workbook.addWorksheet("Donation Report");
+
+            worksheet.columns = [
+                {
+                    header: "Campaign",
+                    key: "campaign",
+                    width: 30
+                },
+                {
+                    header: "NGO",
+                    key: "ngo",
+                    width: 25
+                },
+                {
+                    header: "Amount",
+                    key: "amount",
+                    width: 15
+                },
+                {
+                    header: "Status",
+                    key: "status",
+                    width: 15
+                },
+                {
+                    header: "Date",
+                    key: "date",
+                    width: 20
+                }
+            ];
+
+            donations.forEach((donation) => {
+                worksheet.addRow({
+                    campaign: donation.campaignId?.title || "N/A",
+                    ngo: donation.campaignId?.ngoId?.ngoName || "N/A",
+                    amount: donation.amount,
+                    status: donation.status || "N/A",
+                    date: donation.createdAt
+                        ? new Date(donation.createdAt).toLocaleDateString("en-IN")
+                        : "N/A"
+                });
+            });
+
+            // Style the header
+            worksheet.getRow(1).font = {
+                bold: true
+            };
+
+            worksheet.getRow(1).alignment = {
+                vertical: "middle",
+                horizontal: "center"
+            };
+
+            // Currency format
+            worksheet.getColumn("amount").numFmt = '₹#,##0.00';
+
+            res.setHeader(
+                "Content-Type",
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            );
+
+            res.setHeader(
+                "Content-Disposition",
+                `attachment; filename="company-report-${Date.now()}.xlsx"`
+            );
+
+            await workbook.xlsx.write(res);
+
+            res.end();
+        }
+
+    } catch (error) {
+        console.error("Report export error:", error);
+
+        if (!res.headersSent) {
+            res.status(500).json({
+                message: "Error exporting report",
+                error: error.message
+            });
+        }
     }
 });
 

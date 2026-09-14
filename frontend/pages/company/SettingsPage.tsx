@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
 import { apiFetch } from '../../services/api';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 import Button from '../../components/common/Button';
 
 interface NotificationSettings {

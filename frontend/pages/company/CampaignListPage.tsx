@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
-import { useToast } from '../../components/ui/Toast';
+import { useToast } from '../../context/ToastContext.tsx';
 import Button from '../../components/common/Button';
 import { Link } from 'react-router-dom';
 
