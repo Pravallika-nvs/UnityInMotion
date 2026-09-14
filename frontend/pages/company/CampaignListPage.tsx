@@ -1,27 +1,41 @@
-
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../context/ToastContext.tsx';
-import Button from '../../components/common/Button';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { FiHeart } from 'react-icons/fi';
 
 interface Campaign {
     _id: string;
-    title: string;
-    description: string;
-    targetAmount: number;
-    raisedAmount: number;
-    status: string;
-    ngoId: {
-        ngoName: string;
-        email: string;
-    };
-    images: string[];
-    createdAt: string;
+    title?: string;
+    campaignName?: string;
+    description?: string;
+
+    targetAmount?: number;
+    goalAmount?: number;
+    raisedAmount?: number;
+
+    status?: string;
+    approvalStatus?: string;
+    isActive?: boolean;
+
+    ngoId?: {
+        _id?: string;
+        ngoName?: string;
+        email?: string;
+    } | string;
+
+    images?: string[];
+    image?: string;
+    imageUrl?: string;
+
+    createdAt?: string;
+    endDate?: string;
 }
 
 const CompanyCampaignListPage: React.FC = () => {
     const { addToast } = useToast();
+    const navigate = useNavigate();
+
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [filter, setFilter] = useState('all');
@@ -29,10 +43,41 @@ const CompanyCampaignListPage: React.FC = () => {
     useEffect(() => {
         const fetchCampaigns = async () => {
             try {
-                const response = await apiFetch<Campaign[]>('/company/campaigns');
-                setCampaigns(response);
+                const response = await apiFetch('/company/campaigns');
+
+                console.log(
+                    'Company campaigns response:',
+                    response
+                );
+
+                let campaignList: Campaign[] = [];
+
+                if (Array.isArray(response)) {
+                    campaignList = response;
+                } else if (Array.isArray(response?.campaigns)) {
+                    campaignList = response.campaigns;
+                } else if (Array.isArray(response?.data)) {
+                    campaignList = response.data;
+                } else if (
+                    Array.isArray(response?.data?.campaigns)
+                ) {
+                    campaignList = response.data.campaigns;
+                }
+
+                setCampaigns(campaignList);
             } catch (error: any) {
-                addToast(error.message || 'Failed to fetch campaigns', 'error');
+                console.error(
+                    'Failed to fetch company campaigns:',
+                    error
+                );
+
+                addToast(
+                    error?.message ||
+                        'Failed to fetch campaigns',
+                    'error'
+                );
+
+                setCampaigns([]);
             } finally {
                 setIsLoading(false);
             }
@@ -41,102 +86,286 @@ const CompanyCampaignListPage: React.FC = () => {
         fetchCampaigns();
     }, [addToast]);
 
+    // -----------------------------------------
+    // DONATE NOW
+    // -----------------------------------------
+
     const handleDonate = (campaignId: string) => {
-        // Navigate to donation page or open donation modal
-        console.log('Donate to campaign:', campaignId);
+        navigate(`/donate?campaign=${campaignId}`);
     };
 
-    const filteredCampaigns = campaigns.filter(campaign => {
-        if (filter === 'all') return true;
-        return campaign.status === filter;
-    });
+    // -----------------------------------------
+    // FILTER
+    // -----------------------------------------
+
+    const filteredCampaigns = campaigns.filter(
+        (campaign) => {
+            if (filter === 'all') {
+                return true;
+            }
+
+            const status =
+                campaign.status ||
+                campaign.approvalStatus ||
+                '';
+
+            return (
+                status.toLowerCase() ===
+                filter.toLowerCase()
+            );
+        }
+    );
+
+    // -----------------------------------------
+    // LOADING
+    // -----------------------------------------
 
     if (isLoading) {
         return (
             <div className="flex justify-center items-center h-64">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
             </div>
         );
     }
 
+    // -----------------------------------------
+    // PAGE
+    // -----------------------------------------
+
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
+
+            {/* HEADER */}
+            <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Available Campaigns</h1>
-                    <p className="mt-2 text-gray-600">Support meaningful causes through our verified NGO partners</p>
+                    <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                        Available Campaigns
+                    </h1>
+
+                    <p className="mt-2 text-gray-600 dark:text-gray-400">
+                        Support meaningful causes through our verified NGO partners
+                    </p>
                 </div>
-                <div className="flex space-x-2">
-                    <select
-                        value={filter}
-                        onChange={(e) => setFilter(e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                        <option value="all">All Campaigns</option>
-                        <option value="active">Active</option>
-                        <option value="completed">Completed</option>
-                    </select>
-                </div>
+
+                <select
+                    value={filter}
+                    onChange={(e) =>
+                        setFilter(e.target.value)
+                    }
+                    className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-brand-dark-200 dark:text-white"
+                >
+                    <option value="all">
+                        All Campaigns
+                    </option>
+
+                    <option value="active">
+                        Active
+                    </option>
+
+                    <option value="completed">
+                        Completed
+                    </option>
+                </select>
             </div>
 
+            {/* COUNT */}
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+                {filteredCampaigns.length}{' '}
+                campaign
+                {filteredCampaigns.length !== 1
+                    ? 's'
+                    : ''}{' '}
+                available
+            </p>
+
+            {/* CAMPAIGNS */}
             {filteredCampaigns.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {filteredCampaigns.map((campaign) => (
-                        <div key={campaign._id} className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                            <div className="h-48 bg-gray-200">
-                                {campaign.images && campaign.images.length > 0 ? (
-                                    <img
-                                        src={campaign.images[0]}
-                                        alt={campaign.title}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
-                                    <div className="flex items-center justify-center h-full text-gray-400">
-                                        No Image
-                                    </div>
-                                )}
-                            </div>
-                            <div className="p-6">
-                                <h3 className="text-xl font-semibold text-gray-900 mb-2">{campaign.title}</h3>
-                                <p className="text-gray-600 mb-4 line-clamp-3">{campaign.description}</p>
-                                
-                                <div className="mb-4">
-                                    <div className="flex justify-between text-sm text-gray-600 mb-1">
-                                        <span>Raised</span>
-                                        <span>{((campaign.raisedAmount / campaign.targetAmount) * 100).toFixed(1)}%</span>
-                                    </div>
-                                    <div className="w-full bg-gray-200 rounded-full h-2">
-                                        <div
-                                            className="bg-primary h-2 rounded-full"
-                                            style={{ width: `${Math.min((campaign.raisedAmount / campaign.targetAmount) * 100, 100)}%` }}
-                                        ></div>
-                                    </div>
-                                    <div className="flex justify-between text-sm text-gray-600 mt-1">
-                                        <span>₹{campaign.raisedAmount.toLocaleString()}</span>
-                                        <span>₹{campaign.targetAmount.toLocaleString()}</span>
-                                    </div>
-                                </div>
 
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <p className="text-sm text-gray-600">By: {campaign.ngoId.ngoName}</p>
-                                        <p className="text-xs text-gray-500">{new Date(campaign.createdAt).toLocaleDateString()}</p>
+                    {filteredCampaigns.map(
+                        (campaign) => {
+
+                            const targetAmount =
+                                Number(
+                                    campaign.targetAmount ??
+                                        campaign.goalAmount ??
+                                        0
+                                );
+
+                            const raisedAmount =
+                                Number(
+                                    campaign.raisedAmount ??
+                                        0
+                                );
+
+                            const percentage =
+                                targetAmount > 0
+                                    ? Math.min(
+                                          (raisedAmount /
+                                              targetAmount) *
+                                              100,
+                                          100
+                                      )
+                                    : 0;
+
+                            const ngoName =
+                                typeof campaign.ngoId ===
+                                'object'
+                                    ? campaign.ngoId?.ngoName
+                                    : '';
+
+                            const image =
+                                campaign.images &&
+                                campaign.images.length > 0
+                                    ? campaign.images[0]
+                                    : campaign.image ||
+                                      campaign.imageUrl ||
+                                      '';
+
+                            const campaignTitle =
+                                campaign.title ||
+                                campaign.campaignName ||
+                                'Untitled Campaign';
+
+                            const campaignDescription =
+                                campaign.description ||
+                                'No description available.';
+
+                            return (
+                                <div
+                                    key={campaign._id}
+                                    className="bg-white dark:bg-brand-dark-200 rounded-xl shadow-md border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col"
+                                >
+
+                                    {/* IMAGE */}
+                                    <div className="h-48 bg-gray-200 dark:bg-gray-700">
+                                        {image ? (
+                                            <img
+                                                src={image}
+                                                alt={campaignTitle}
+                                                className="w-full h-full object-cover"
+                                                onError={(e) => {
+                                                    e.currentTarget.style.display =
+                                                        'none';
+                                                }}
+                                            />
+                                        ) : (
+                                            <div className="flex items-center justify-center h-full text-gray-400">
+                                                No Image
+                                            </div>
+                                        )}
                                     </div>
-                                    <Button
-                                        variant="primary"
-                                        size="sm"
-                                        onClick={() => handleDonate(campaign._id)}
-                                    >
-                                        Donate Now
-                                    </Button>
+
+                                    {/* CONTENT */}
+                                    <div className="p-6 flex flex-col flex-grow">
+
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
+                                            {campaignTitle}
+                                        </h3>
+
+                                        <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
+                                            {campaignDescription}
+                                        </p>
+
+                                        {/* PROGRESS */}
+                                        <div className="mb-5">
+
+                                            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-1">
+                                                <span>
+                                                    Raised
+                                                </span>
+
+                                                <span>
+                                                    {percentage.toFixed(
+                                                        1
+                                                    )}
+                                                    %
+                                                </span>
+                                            </div>
+
+                                            <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                                                <div
+                                                    className="bg-primary h-2 rounded-full"
+                                                    style={{
+                                                        width: `${percentage}%`
+                                                    }}
+                                                />
+                                            </div>
+
+                                            <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                <span>
+                                                    ₹
+                                                    {raisedAmount.toLocaleString(
+                                                        'en-IN'
+                                                    )}
+                                                </span>
+
+                                                <span>
+                                                    ₹
+                                                    {targetAmount.toLocaleString(
+                                                        'en-IN'
+                                                    )}
+                                                </span>
+                                            </div>
+
+                                        </div>
+
+                                        {/* NGO */}
+                                        <div className="mb-5">
+                                            <p className="text-sm text-gray-600 dark:text-gray-400">
+                                                <span className="font-medium">
+                                                    By:
+                                                </span>{' '}
+                                                {ngoName ||
+                                                    'Verified NGO'}
+                                            </p>
+
+                                            {campaign.createdAt && (
+                                                <p className="text-xs text-gray-500 dark:text-gray-500 mt-1">
+                                                    {new Date(
+                                                        campaign.createdAt
+                                                    ).toLocaleDateString(
+                                                        'en-IN'
+                                                    )}
+                                                </p>
+                                            )}
+                                        </div>
+
+                                        {/* DONATE NOW BUTTON */}
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                handleDonate(
+                                                    campaign._id
+                                                )
+                                            }
+                                            className="mt-auto w-full flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-brand-gold text-white font-semibold hover:opacity-90 active:scale-[0.98] transition-all shadow-sm"
+                                        >
+                                            <FiHeart
+                                                size={18}
+                                            />
+
+                                            Donate Now
+                                        </button>
+
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                    ))}
+                            );
+                        }
+                    )}
+
                 </div>
             ) : (
-                <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No campaigns found</p>
+                <div className="bg-white dark:bg-brand-dark-200 rounded-lg border border-gray-200 dark:border-gray-700 text-center py-16">
+
+                    <p className="text-gray-500 dark:text-gray-400 text-lg">
+                        No campaigns found
+                    </p>
+
+                    <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
+                        There are currently no campaigns available.
+                    </p>
+
                 </div>
             )}
         </div>
