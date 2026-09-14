@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apiFetch } from '../../services/api';
@@ -21,6 +20,7 @@ interface NGO {
 const CompanyNgoListPage: React.FC = () => {
     const navigate = useNavigate();
     const { addToast } = useToast();
+
     const [ngos, setNgos] = useState<NGO[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -28,10 +28,30 @@ const CompanyNgoListPage: React.FC = () => {
     useEffect(() => {
         const fetchNgos = async () => {
             try {
-                const response = await apiFetch<{ ngos: NGO[] }>('/company/ngos');
-                setNgos(response || []);
+                const response = await apiFetch('/company/ngos');
+
+                console.log('Company NGOs response:', response);
+
+                let ngoList: NGO[] = [];
+
+                if (Array.isArray(response)) {
+                    ngoList = response;
+                } else if (Array.isArray(response?.ngos)) {
+                    ngoList = response.ngos;
+                } else if (Array.isArray(response?.data)) {
+                    ngoList = response.data;
+                } else if (Array.isArray(response?.data?.ngos)) {
+                    ngoList = response.data.ngos;
+                }
+
+                setNgos(ngoList);
             } catch (error: any) {
-                addToast(error.message || 'Failed to fetch NGOs', 'error');
+                console.error('Failed to fetch NGOs:', error);
+
+                addToast(
+                    error?.message || 'Failed to fetch NGOs',
+                    'error'
+                );
             } finally {
                 setIsLoading(false);
             }
@@ -44,10 +64,23 @@ const CompanyNgoListPage: React.FC = () => {
         console.log('View NGO profile:', ngoId);
     };
 
-    const filteredNgos = ngos.filter(ngo =>
-        ngo.ngoName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        ngo.ngoType.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const handleViewCampaigns = (ngoId: string) => {
+        navigate(`/company/campaigns?ngoId=${ngoId}`);
+    };
+
+    const filteredNgos = ngos.filter((ngo) => {
+        const name = ngo.ngoName || '';
+        const type = ngo.ngoType || '';
+
+        return (
+            name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            type
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase())
+        );
+    });
 
     if (isLoading) {
         return (
@@ -59,65 +92,115 @@ const CompanyNgoListPage: React.FC = () => {
 
     return (
         <div className="space-y-6">
+
+            {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-gray-900">Partner NGOs</h1>
-                <p className="mt-2 text-gray-600">Connect with verified NGOs for your CSR initiatives</p>
+                <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+                    Partner NGOs
+                </h1>
+
+                <p className="mt-2 text-gray-600 dark:text-gray-400">
+                    Connect with verified NGOs for your CSR initiatives
+                </p>
             </div>
 
+            {/* Search */}
             <div className="flex justify-between items-center">
                 <div className="flex-1 max-w-md">
                     <input
                         type="text"
                         placeholder="Search NGOs..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        onChange={(e) =>
+                            setSearchTerm(e.target.value)
+                        }
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-white dark:bg-brand-dark-200 dark:text-white"
                     />
                 </div>
-                <div className="text-sm text-gray-600">
+
+                <div className="text-sm text-gray-600 dark:text-gray-400 ml-4">
                     {filteredNgos.length} NGOs found
                 </div>
             </div>
 
+            {/* NGO Cards */}
             {filteredNgos.length > 0 ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
                     {filteredNgos.map((ngo) => (
-                        <div key={ngo._id} className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                        <div
+                            key={ngo._id}
+                            className="bg-white dark:bg-brand-dark-200 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6"
+                        >
+
+                            {/* NGO Header */}
                             <div className="flex items-center space-x-4 mb-4">
                                 <img
-                                    src={ngo.logo || `https://ui-avatars.com/api/?name=${ngo.ngoName}&background=0d6efd&color=fff&size=64`}
+                                    src={
+                                        ngo.logo ||
+                                        `https://ui-avatars.com/api/?name=${encodeURIComponent(
+                                            ngo.ngoName
+                                        )}&background=0d6efd&color=fff&size=64`
+                                    }
                                     alt={ngo.ngoName}
                                     className="w-16 h-16 rounded-full object-cover"
                                 />
-                                <div>
-                                    <h3 className="text-lg font-semibold text-gray-900">{ngo.ngoName}</h3>
-                                    <p className="text-sm text-gray-600">{ngo.ngoType}</p>
+
+                                <div className="min-w-0">
+                                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white truncate">
+                                        {ngo.ngoName}
+                                    </h3>
+
+                                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                                        {ngo.ngoType}
+                                    </p>
                                 </div>
                             </div>
 
+                            {/* Details */}
                             <div className="space-y-2 mb-4">
-                                <p className="text-sm text-gray-600">
-                                    <strong>Email:</strong> {ngo.email}
+
+                                <p className="text-sm text-gray-600 dark:text-gray-400">
+                                    <strong>Email:</strong>{' '}
+                                    {ngo.email}
                                 </p>
+
                                 {ngo.website && (
-                                    <p className="text-sm text-gray-600">
-                                        <strong>Website:</strong> 
-                                        <a href={ngo.website} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline ml-1">
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 break-all">
+                                        <strong>Website:</strong>{' '}
+                                        <a
+                                            href={
+                                                ngo.website.startsWith(
+                                                    'http'
+                                                )
+                                                    ? ngo.website
+                                                    : `https://${ngo.website}`
+                                            }
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-primary hover:underline ml-1"
+                                        >
                                             {ngo.website}
                                         </a>
                                     </p>
                                 )}
+
                                 {ngo.description && (
-                                    <p className="text-sm text-gray-600 line-clamp-3">{ngo.description}</p>
+                                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-3">
+                                        {ngo.description}
+                                    </p>
                                 )}
                             </div>
 
+                            {/* Certifications */}
                             <div className="flex flex-wrap gap-2 mb-4">
+
                                 {ngo.is80GCertified && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                                         80G Certified
                                     </span>
                                 )}
+
                                 {ngo.is12ACertified && (
                                     <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
                                         12A Certified
@@ -125,30 +208,45 @@ const CompanyNgoListPage: React.FC = () => {
                                 )}
                             </div>
 
+                            {/* Buttons */}
                             <div className="flex space-x-2">
+
                                 <Button
                                     variant="primary"
                                     size="sm"
-                                    onClick={() => handleViewProfile(ngo._id)}
+                                    onClick={() =>
+                                        handleViewProfile(
+                                            ngo._id
+                                        )
+                                    }
                                     className="flex-1"
                                 >
                                     View Profile
                                 </Button>
+
                                 <Button
                                     variant="outline"
                                     size="sm"
+                                    onClick={() =>
+                                        handleViewCampaigns(
+                                            ngo._id
+                                        )
+                                    }
                                     className="flex-1"
-                                    onClick={() => navigate(`/company/ngos/${ngo._id}`)}
                                 >
                                     View Campaigns
                                 </Button>
+
                             </div>
                         </div>
                     ))}
+
                 </div>
             ) : (
                 <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">No NGOs found</p>
+                    <p className="text-gray-500 dark:text-gray-400 text-lg">
+                        No NGOs found
+                    </p>
                 </div>
             )}
         </div>

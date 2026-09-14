@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { apiFetch } from '../../services/api';
 import { useToast } from '../../context/ToastContext.tsx';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { FiHeart } from 'react-icons/fi';
 
 interface Campaign {
@@ -35,6 +35,7 @@ interface Campaign {
 const CompanyCampaignListPage: React.FC = () => {
     const { addToast } = useToast();
     const navigate = useNavigate();
+    const location = useLocation();
 
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -64,6 +65,44 @@ const CompanyCampaignListPage: React.FC = () => {
                     campaignList = response.data.campaigns;
                 }
 
+                // -----------------------------------------
+                // FILTER BY NGO WHEN COMING FROM NGO LIST
+                // -----------------------------------------
+
+                const searchParams = new URLSearchParams(
+                    location.search
+                );
+
+                const selectedNgoId =
+                    searchParams.get('ngoId');
+
+                if (selectedNgoId) {
+                    console.log(
+                        'Filtering campaigns for NGO:',
+                        selectedNgoId
+                    );
+
+                    campaignList = campaignList.filter(
+                        (campaign) => {
+                            if (
+                                typeof campaign.ngoId ===
+                                'object' &&
+                                campaign.ngoId !== null
+                            ) {
+                                return (
+                                    campaign.ngoId._id ===
+                                    selectedNgoId
+                                );
+                            }
+
+                            return (
+                                campaign.ngoId ===
+                                selectedNgoId
+                            );
+                        }
+                    );
+                }
+
                 setCampaigns(campaignList);
             } catch (error: any) {
                 console.error(
@@ -84,7 +123,7 @@ const CompanyCampaignListPage: React.FC = () => {
         };
 
         fetchCampaigns();
-    }, [addToast]);
+    }, [addToast, location.search]);
 
     // -----------------------------------------
     // DONATE NOW
@@ -95,7 +134,7 @@ const CompanyCampaignListPage: React.FC = () => {
     };
 
     // -----------------------------------------
-    // FILTER
+    // FILTER CAMPAIGNS
     // -----------------------------------------
 
     const filteredCampaigns = campaigns.filter(
@@ -132,14 +171,24 @@ const CompanyCampaignListPage: React.FC = () => {
     // PAGE
     // -----------------------------------------
 
+    const searchParams = new URLSearchParams(
+        location.search
+    );
+
+    const selectedNgoId =
+        searchParams.get('ngoId');
+
     return (
         <div className="space-y-6">
 
             {/* HEADER */}
             <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
+
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-                        Available Campaigns
+                        {selectedNgoId
+                            ? 'NGO Campaigns'
+                            : 'Available Campaigns'}
                     </h1>
 
                     <p className="mt-2 text-gray-600 dark:text-gray-400">
@@ -166,6 +215,7 @@ const CompanyCampaignListPage: React.FC = () => {
                         Completed
                     </option>
                 </select>
+
             </div>
 
             {/* COUNT */}
@@ -180,6 +230,7 @@ const CompanyCampaignListPage: React.FC = () => {
 
             {/* CAMPAIGNS */}
             {filteredCampaigns.length > 0 ? (
+
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 
                     {filteredCampaigns.map(
@@ -210,7 +261,8 @@ const CompanyCampaignListPage: React.FC = () => {
 
                             const ngoName =
                                 typeof campaign.ngoId ===
-                                'object'
+                                'object' &&
+                                campaign.ngoId !== null
                                     ? campaign.ngoId?.ngoName
                                     : '';
 
@@ -239,12 +291,17 @@ const CompanyCampaignListPage: React.FC = () => {
 
                                     {/* IMAGE */}
                                     <div className="h-48 bg-gray-200 dark:bg-gray-700">
+
                                         {image ? (
                                             <img
                                                 src={image}
-                                                alt={campaignTitle}
+                                                alt={
+                                                    campaignTitle
+                                                }
                                                 className="w-full h-full object-cover"
-                                                onError={(e) => {
+                                                onError={(
+                                                    e
+                                                ) => {
                                                     e.currentTarget.style.display =
                                                         'none';
                                                 }}
@@ -254,6 +311,7 @@ const CompanyCampaignListPage: React.FC = () => {
                                                 No Image
                                             </div>
                                         )}
+
                                     </div>
 
                                     {/* CONTENT */}
@@ -264,7 +322,9 @@ const CompanyCampaignListPage: React.FC = () => {
                                         </h3>
 
                                         <p className="text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
-                                            {campaignDescription}
+                                            {
+                                                campaignDescription
+                                            }
                                         </p>
 
                                         {/* PROGRESS */}
@@ -284,15 +344,18 @@ const CompanyCampaignListPage: React.FC = () => {
                                             </div>
 
                                             <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+
                                                 <div
                                                     className="bg-primary h-2 rounded-full"
                                                     style={{
                                                         width: `${percentage}%`
                                                     }}
                                                 />
+
                                             </div>
 
                                             <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mt-1">
+
                                                 <span>
                                                     ₹
                                                     {raisedAmount.toLocaleString(
@@ -306,12 +369,14 @@ const CompanyCampaignListPage: React.FC = () => {
                                                         'en-IN'
                                                     )}
                                                 </span>
+
                                             </div>
 
                                         </div>
 
                                         {/* NGO */}
                                         <div className="mb-5">
+
                                             <p className="text-sm text-gray-600 dark:text-gray-400">
                                                 <span className="font-medium">
                                                     By:
@@ -329,9 +394,10 @@ const CompanyCampaignListPage: React.FC = () => {
                                                     )}
                                                 </p>
                                             )}
+
                                         </div>
 
-                                        {/* DONATE NOW BUTTON */}
+                                        {/* DONATE NOW */}
                                         <button
                                             type="button"
                                             onClick={() =>
@@ -349,13 +415,16 @@ const CompanyCampaignListPage: React.FC = () => {
                                         </button>
 
                                     </div>
+
                                 </div>
                             );
                         }
                     )}
 
                 </div>
+
             ) : (
+
                 <div className="bg-white dark:bg-brand-dark-200 rounded-lg border border-gray-200 dark:border-gray-700 text-center py-16">
 
                     <p className="text-gray-500 dark:text-gray-400 text-lg">
@@ -363,11 +432,15 @@ const CompanyCampaignListPage: React.FC = () => {
                     </p>
 
                     <p className="text-gray-400 dark:text-gray-500 text-sm mt-2">
-                        There are currently no campaigns available.
+                        {selectedNgoId
+                            ? 'This NGO currently has no campaigns available.'
+                            : 'There are currently no campaigns available.'}
                     </p>
 
                 </div>
+
             )}
+
         </div>
     );
 };
