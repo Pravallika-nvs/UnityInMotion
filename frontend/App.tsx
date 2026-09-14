@@ -60,11 +60,13 @@ const NgoCampaignManagementPage = lazy(() => import('./pages/ngo/CampaignManagem
 const NgoCreateCampaignPage = lazy(() => import('./pages/ngo/CreateCampaignPage.tsx'));
 const NgoEditCampaignPage = lazy(() => import('./pages/ngo/EditCampaignPage.tsx'));
 const CompanyListPage = lazy(() => import('./pages/ngo/CompanyListPage.tsx'));
+const NgoCompanyDetailsPage = lazy(() => import('./pages/ngo/CompanyDetailsPage.tsx'));
 const UserListPage = lazy(() => import('./pages/ngo/UserListPage.tsx'));
 const NgoReportsPage = lazy(() => import('./pages/ngo/ReportsPage.tsx'));
 const NgoProfilePage = lazy(() => import('./pages/ngo/ProfilePage.tsx'));
 const NgoSettingsPage = lazy(() => import('./pages/ngo/SettingsPage.tsx'));
-//const NgoVolunteeringPage = lazy(() => import('./pages/ngo/VolunteeringPage.tsx'));
+// const NgoVolunteeringPage = lazy(() => import('./pages/ngo/VolunteeringPage.tsx'));
+
 import NgoUserListPage from './pages/ngo/UserListPage.tsx';
 
 // Company Pages (Lazy Loaded)
@@ -133,13 +135,19 @@ const App: React.FC = () => {
             <Route path="/" element={<HomePage />} />
             <Route path="/about" element={<AboutPage />} />
             <Route path="/explore" element={<ExplorePage />} />
-            <Route path="/campaign/:campaignId" element={<CampaignDetailsPage />} />
+            <Route
+              path="/campaign/:campaignId"
+              element={<CampaignDetailsPage />}
+            />
             <Route path="/donate" element={<DonatePage />} />
             <Route path="/contact" element={<ContactPage />} />
             <Route path="/legal" element={<LegalPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
-            <Route path="/profile/:username" element={<ProfilePage />} />
+            <Route
+              path="/profile/:username"
+              element={<ProfilePage />}
+            />
           </Route>
 
           {/* Admin routes */}
@@ -155,20 +163,44 @@ const App: React.FC = () => {
             <Route path="dashboard" element={<AdminDashboardPage />} />
             <Route path="users" element={<UserManagementPage />} />
             <Route path="users/:userId" element={<UserProfilePage />} />
-            <Route path="users/:userId/customize" element={<CustomizeSharePage />} />
+            <Route
+              path="users/:userId/customize"
+              element={<CustomizeSharePage />}
+            />
             <Route path="campaigns" element={<CampaignManagementPage />} />
-            <Route path="campaigns/new" element={<CreateCampaignPage />} />
-            <Route path="campaigns/:campaignId" element={<AdminCampaignDetailsPage />} />
-            <Route path="campaigns/:campaignId/edit" element={<EditCampaignPage />} />
+            <Route
+              path="campaigns/new"
+              element={<CreateCampaignPage />}
+            />
+            <Route
+              path="campaigns/:campaignId"
+              element={<AdminCampaignDetailsPage />}
+            />
+            <Route
+              path="campaigns/:campaignId/edit"
+              element={<EditCampaignPage />}
+            />
             <Route path="donations" element={<DonationManagementPage />} />
             <Route path="notices" element={<NoticeManagementPage />} />
-            <Route path="notices/new" element={<CreateNoticePage />} />
-            <Route path="notices/:noticeId/edit" element={<EditNoticePage />} />
+            <Route
+              path="notices/new"
+              element={<CreateNoticePage />}
+            />
+            <Route
+              path="notices/:noticeId/edit"
+              element={<EditNoticePage />}
+            />
             <Route path="tasks" element={<TaskManagerPage />} />
-            <Route path="tasks/calendar" element={<TaskCalendarPage />} />
+            <Route
+              path="tasks/calendar"
+              element={<TaskCalendarPage />}
+            />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="settings" element={<SettingsPage />} />
-            <Route path="settings/appearance" element={<AppearancePage />} />
+            <Route
+              path="settings/appearance"
+              element={<AppearancePage />}
+            />
           </Route>
 
           {/* NGO routes */}
@@ -182,15 +214,58 @@ const App: React.FC = () => {
           >
             <Route index element={<NgoDashboardPage />} />
             <Route path="dashboard" element={<NgoDashboardPage />} />
-            <Route path="campaigns" element={<NgoCampaignManagementPage />} />
-            <Route path="campaigns/new" element={<NgoCreateCampaignPage />} />
-            <Route path="campaigns/:campaignId/edit" element={<NgoEditCampaignPage />} />
-            <Route path="companies" element={<CompanyListPage />} />
-            <Route path="users" element={<NgoUserListPage />} />
-            <Route path="reports" element={<NgoReportsPage />} />
-            <Route path="profile" element={<NgoProfilePage />} />
-            <Route path="settings" element={<NgoSettingsPage />} />
-            <Route path="contact" element={<ContactPage />} />
+
+            <Route
+              path="campaigns"
+              element={<NgoCampaignManagementPage />}
+            />
+
+            <Route
+              path="campaigns/new"
+              element={<NgoCreateCampaignPage />}
+            />
+
+            <Route
+              path="campaigns/:campaignId/edit"
+              element={<NgoEditCampaignPage />}
+            />
+
+            {/* Corporate Partners */}
+            <Route
+              path="companies"
+              element={<CompanyListPage />}
+            />
+
+            {/* Individual Company Profile */}
+            <Route
+              path="companies/:id"
+              element={<NgoCompanyDetailsPage />}
+            />
+
+            <Route
+              path="users"
+              element={<NgoUserListPage />}
+            />
+
+            <Route
+              path="reports"
+              element={<NgoReportsPage />}
+            />
+
+            <Route
+              path="profile"
+              element={<NgoProfilePage />}
+            />
+
+            <Route
+              path="settings"
+              element={<NgoSettingsPage />}
+            />
+
+            <Route
+              path="contact"
+              element={<ContactPage />}
+            />
           </Route>
 
           {/* Company routes */}
@@ -203,13 +278,34 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<CompanyDashboardPage />} />
-            <Route path="dashboard" element={<CompanyDashboardPage />} />
-            <Route path="campaigns" element={<CompanyCampaignListPage />} />
-            <Route path="ngos" element={<CompanyNgoListPage />} />
-            <Route path="reports" element={<CompanyReportsPage />} />
-            <Route path="profile" element={<CompanyProfilePage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="settings" element={<CompanySettingsPage />} />
+            <Route
+              path="dashboard"
+              element={<CompanyDashboardPage />}
+            />
+            <Route
+              path="campaigns"
+              element={<CompanyCampaignListPage />}
+            />
+            <Route
+              path="ngos"
+              element={<CompanyNgoListPage />}
+            />
+            <Route
+              path="reports"
+              element={<CompanyReportsPage />}
+            />
+            <Route
+              path="profile"
+              element={<CompanyProfilePage />}
+            />
+            <Route
+              path="contact"
+              element={<ContactPage />}
+            />
+            <Route
+              path="settings"
+              element={<CompanySettingsPage />}
+            />
           </Route>
 
           {/* Donor routes */}
@@ -222,21 +318,68 @@ const App: React.FC = () => {
             }
           >
             <Route index element={<DonorDashboardPage />} />
-            <Route path="dashboard" element={<DonorDashboardPage />} />
-            <Route path="campaigns" element={<DonorCampaignListPage />} />
-            <Route path="ngos" element={<DonorNgoListPage />} />
-            <Route path="ngos/:ngoId" element={<DonorNgoProfilePage />} />
-            <Route path="reports" element={<DonorReportsPage />} />
-            <Route path="profile" element={<DonorProfilePage />} />
-            <Route path="contact" element={<ContactPage />} />
-            <Route path="settings" element={<DonorSettingsPage />} />
+
+            <Route
+              path="dashboard"
+              element={<DonorDashboardPage />}
+            />
+
+            <Route
+              path="campaigns"
+              element={<DonorCampaignListPage />}
+            />
+
+            <Route
+              path="ngos"
+              element={<DonorNgoListPage />}
+            />
+
+            <Route
+              path="ngos/:ngoId"
+              element={<DonorNgoProfilePage />}
+            />
+
+            <Route
+              path="reports"
+              element={<DonorReportsPage />}
+            />
+
+            <Route
+              path="profile"
+              element={<DonorProfilePage />}
+            />
+
+            <Route
+              path="contact"
+              element={<ContactPage />}
+            />
+
+            <Route
+              path="settings"
+              element={<DonorSettingsPage />}
+            />
           </Route>
 
           {/* Standalone Shared Pages */}
-          <Route path="/share/profile/:shareId" element={<ShareProfilePage />} />
-          <Route path="/share/campaign/:shareId" element={<ShareCampaignPage />} />
-          <Route path="/task-manager" element={<TaskManagerPage />} />
-          <Route path="/payment-test" element={<PaymentTestPage />} />
+          <Route
+            path="/share/profile/:shareId"
+            element={<ShareProfilePage />}
+          />
+
+          <Route
+            path="/share/campaign/:shareId"
+            element={<ShareCampaignPage />}
+          />
+
+          <Route
+            path="/task-manager"
+            element={<TaskManagerPage />}
+          />
+
+          <Route
+            path="/payment-test"
+            element={<PaymentTestPage />}
+          />
 
         </Routes>
       </Suspense>

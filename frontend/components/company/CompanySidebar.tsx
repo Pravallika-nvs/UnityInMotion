@@ -10,7 +10,7 @@ const menuItems = [
     { label: 'My Reports', icon: <FiFileText />, to: '/company/reports' },
     { label: 'My Profile', icon: <FiBriefcase />, to: '/company/profile' },
     //{ label: 'Settings', icon: <FiSettings />, to: '/company/settings' },
-    { label: 'Contact Us', icon: <FiMail />, to: '/donor/contact', isSingle: true, path: '/company/contact' }
+    { label: 'Contact Us', icon: <FiMail />, to: '/company/contact', isSingle: true, path: '/company/contact' }
 ];
 
 const CompanySidebar: React.FC = () => {
