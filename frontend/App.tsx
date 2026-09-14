@@ -29,11 +29,12 @@ const SignupPage = lazy(() => import('./pages/SignupPage.tsx'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage.tsx'));
 const ShareProfilePage = lazy(() => import('./pages/ShareProfilePage.tsx'));
 const ShareCampaignPage = lazy(() => import('./pages/ShareCampaignPage.tsx'));
+
 import TaskManagerPage from './pages/TaskManagerPage.tsx';
 import PaymentTestPage from './pages/PaymentTestPage.tsx';
 import { AuthContext } from './context/AuthContext.tsx';
 import { useContext } from 'react';
-import './utils/chartSetup'; // Register Chart.js plugins including Filler
+import './utils/chartSetup';
 
 // Admin Pages (Lazy Loaded)
 const AdminDashboardPage = lazy(() => import('./pages/admin/DashboardPage.tsx'));
@@ -82,161 +83,170 @@ const DonorNgoListPage = lazy(() => import('./pages/donor/NgoListPage.tsx'));
 const DonorReportsPage = lazy(() => import('./pages/donor/ReportsPage.tsx'));
 const DonorProfilePage = lazy(() => import('./pages/donor/ProfilePage.tsx'));
 const DonorSettingsPage = lazy(() => import('./pages/donor/SettingsPage.tsx'));
-
+const DonorNgoProfilePage = lazy(() => import('./pages/donor/DonorNgoProfilePage.tsx'));
 
 const ScrollToTop = () => {
   const { pathname } = useLocation();
+
   React.useEffect(() => {
     window.scrollTo(0, 0);
   }, [pathname]);
+
   return null;
 };
 
 const PageLoader = () => (
-    <div className="flex justify-center items-center h-full w-full min-h-[calc(100vh-20rem)] bg-brand-light dark:bg-brand-dark">
-        <div className="relative flex justify-center items-center">
-            <FiHeart className="animate-ping absolute h-12 w-12 text-brand-gold opacity-75" />
-            <FiHeart className="relative h-12 w-12 text-brand-gold" />
-        </div>
+  <div className="flex justify-center items-center h-full w-full min-h-[calc(100vh-20rem)] bg-brand-light dark:bg-brand-dark">
+    <div className="relative flex justify-center items-center">
+      <FiHeart className="animate-ping absolute h-12 w-12 text-brand-gold opacity-75" />
+      <FiHeart className="relative h-12 w-12 text-brand-gold" />
     </div>
+  </div>
 );
-
 
 const MainLayout = () => (
   <div className="flex flex-col min-h-screen bg-brand-light dark:bg-brand-dark">
     <Header />
+
     <main className="flex-grow">
       <Suspense fallback={<PageLoader />}>
         <Outlet />
       </Suspense>
     </main>
+
     <Footer />
-    <AIChatbot />
   </div>
 );
 
 const App: React.FC = () => {
-    return (
-        <ToastProvider>
-        <BrowserRouter>
-            <DynamicThemeLoader />
-            <ScrollToTop />
-            <ToastContainer />
-            <Suspense fallback={<PageLoader />}>
-                <Routes>
-                    {/* Public-facing routes */}
-                    <Route element={<MainLayout />}>
-                        <Route path="/" element={<HomePage />} />
-                        <Route path="/about" element={<AboutPage />} />
-                        <Route path="/explore" element={<ExplorePage />} />
-                        <Route path="/campaign/:campaignId" element={<CampaignDetailsPage />} />
-                        <Route path="/donate" element={<DonatePage />} />
-                        <Route path="/contact" element={<ContactPage />} />
-                        <Route path="/legal" element={<LegalPage />} />
-                        <Route path="/login" element={<LoginPage />} />
-                        <Route path="/signup" element={<SignupPage />} />
-                        <Route path="/profile/:username" element={<ProfilePage />} />
-                    </Route>
+  return (
+    <BrowserRouter>
+      <DynamicThemeLoader />
+      <ScrollToTop />
+      <ToastContainer />
 
-                    {/* Admin routes */}
-                    <Route 
-                        path="/admin"
-                        element={
-                            <ProtectedRoute allowedRoles={['admin']}>
-                                <AdminLayout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<AdminDashboardPage />} />
-                        <Route path="dashboard" element={<AdminDashboardPage />} />
-                        <Route path="users" element={<UserManagementPage />} />
-                        <Route path="users/:userId" element={<UserProfilePage />} />
-                        <Route path="users/:userId/customize" element={<CustomizeSharePage />} />
-                        <Route path="campaigns" element={<CampaignManagementPage />} />
-                        <Route path="campaigns/new" element={<CreateCampaignPage />} />
-                        <Route path="campaigns/:campaignId" element={<AdminCampaignDetailsPage />} />
-                        <Route path="campaigns/:campaignId/edit" element={<EditCampaignPage />} />
-                        <Route path="donations" element={<DonationManagementPage />} />
-                        <Route path="notices" element={<NoticeManagementPage />} />
-                        <Route path="notices/new" element={<CreateNoticePage />} />
-                        <Route path="notices/:noticeId/edit" element={<EditNoticePage />} />
-                        <Route path="tasks" element={<TaskManagerPage />} />
-                        <Route path="tasks/calendar" element={<TaskCalendarPage />} />
-                        <Route path="reports" element={<ReportsPage />} />
-                        <Route path="settings" element={<SettingsPage />} />
-                        <Route path="settings/appearance" element={<AppearancePage />} />
-                    </Route>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
 
-                    {/* NGO routes */}
-                    <Route
-                        path="/ngo"
-                        element={
-                            <ProtectedRoute allowedRoles={['ngo']}>
-                                <NgoLayout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<NgoDashboardPage />} />
-                        <Route path="dashboard" element={<NgoDashboardPage />} />
-                        <Route path="campaigns" element={<NgoCampaignManagementPage />} />
-                        <Route path="campaigns/new" element={<NgoCreateCampaignPage />} />
-                        <Route path="campaigns/:campaignId/edit" element={<NgoEditCampaignPage />} />
-                        <Route path="companies" element={<CompanyListPage />} />
-                        <Route path="users" element={<NgoUserListPage />} />
-                        <Route path="reports" element={<NgoReportsPage />} />
-                        <Route path="profile" element={<NgoProfilePage />} />
-                        <Route path="settings" element={<NgoSettingsPage />} />
-                        <Route path="volunteering" element={<NgoVolunteeringPage />} />
-                    </Route>
+          {/* Public-facing routes */}
+          <Route element={<MainLayout />}>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/explore" element={<ExplorePage />} />
+            <Route path="/campaign/:campaignId" element={<CampaignDetailsPage />} />
+            <Route path="/donate" element={<DonatePage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            <Route path="/legal" element={<LegalPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/profile/:username" element={<ProfilePage />} />
+          </Route>
 
-                    {/* Company routes */}
-                    <Route
-                        path="/company"
-                        element={
-                            <ProtectedRoute allowedRoles={['company']}>
-                                <CompanyLayout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<CompanyDashboardPage />} />
-                        <Route path="dashboard" element={<CompanyDashboardPage />} />
-                        <Route path="campaigns" element={<CompanyCampaignListPage />} />
-                        <Route path="ngos" element={<CompanyNgoListPage />} />
-                        <Route path="ngos/:id" element={<CompanyNgoDetailsPage />} />
-                        <Route path="reports" element={<CompanyReportsPage />} />
-                        <Route path="profile" element={<CompanyProfilePage />} />
-                        <Route path="settings" element={<CompanySettingsPage />} />
-                    </Route>
+          {/* Admin routes */}
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <AdminLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<AdminDashboardPage />} />
+            <Route path="dashboard" element={<AdminDashboardPage />} />
+            <Route path="users" element={<UserManagementPage />} />
+            <Route path="users/:userId" element={<UserProfilePage />} />
+            <Route path="users/:userId/customize" element={<CustomizeSharePage />} />
+            <Route path="campaigns" element={<CampaignManagementPage />} />
+            <Route path="campaigns/new" element={<CreateCampaignPage />} />
+            <Route path="campaigns/:campaignId" element={<AdminCampaignDetailsPage />} />
+            <Route path="campaigns/:campaignId/edit" element={<EditCampaignPage />} />
+            <Route path="donations" element={<DonationManagementPage />} />
+            <Route path="notices" element={<NoticeManagementPage />} />
+            <Route path="notices/new" element={<CreateNoticePage />} />
+            <Route path="notices/:noticeId/edit" element={<EditNoticePage />} />
+            <Route path="tasks" element={<TaskManagerPage />} />
+            <Route path="tasks/calendar" element={<TaskCalendarPage />} />
+            <Route path="reports" element={<ReportsPage />} />
+            <Route path="settings" element={<SettingsPage />} />
+            <Route path="settings/appearance" element={<AppearancePage />} />
+          </Route>
 
-                    {/* Donor routes */}
-                    <Route
-                        path="/donor"
-                        element={
-                            <ProtectedRoute allowedRoles={['donor']}>
-                                <DonorLayout />
-                            </ProtectedRoute>
-                        }
-                    >
-                        <Route index element={<DonorDashboardPage />} />
-                        <Route path="dashboard" element={<DonorDashboardPage />} />
-                        <Route path="campaigns" element={<DonorCampaignListPage />} />
-                        <Route path="ngos" element={<DonorNgoListPage />} />
-                        <Route path="reports" element={<DonorReportsPage />} />
-                        <Route path="profile" element={<DonorProfilePage />} />
-                        <Route path="settings" element={<DonorSettingsPage />} />
-                    </Route>
+          {/* NGO routes */}
+          <Route
+            path="/ngo"
+            element={
+              <ProtectedRoute allowedRoles={['ngo']}>
+                <NgoLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<NgoDashboardPage />} />
+            <Route path="dashboard" element={<NgoDashboardPage />} />
+            <Route path="campaigns" element={<NgoCampaignManagementPage />} />
+            <Route path="campaigns/new" element={<NgoCreateCampaignPage />} />
+            <Route path="campaigns/:campaignId/edit" element={<NgoEditCampaignPage />} />
+            <Route path="companies" element={<CompanyListPage />} />
+            <Route path="users" element={<NgoUserListPage />} />
+            <Route path="reports" element={<NgoReportsPage />} />
+            <Route path="profile" element={<NgoProfilePage />} />
+            <Route path="settings" element={<NgoSettingsPage />} />
+            <Route path="volunteering" element={<NgoVolunteeringPage />} />
+            <Route path="contact" element={<ContactPage />} />
+          </Route>
 
+          {/* Company routes */}
+          <Route
+            path="/company"
+            element={
+              <ProtectedRoute allowedRoles={['company']}>
+                <CompanyLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<CompanyDashboardPage />} />
+            <Route path="dashboard" element={<CompanyDashboardPage />} />
+            <Route path="campaigns" element={<CompanyCampaignListPage />} />
+            <Route path="ngos" element={<CompanyNgoListPage />} />
+            <Route path="reports" element={<CompanyReportsPage />} />
+            <Route path="profile" element={<CompanyProfilePage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="settings" element={<CompanySettingsPage />} />
+          </Route>
 
-                    {/* Standalone Shared Pages */}
-                    <Route path="/share/profile/:shareId" element={<ShareProfilePage />} />
-                    <Route path="/share/campaign/:shareId" element={<ShareCampaignPage />} />
-                    <Route path="/task-manager" element={<TaskManagerPage />} />
-              <Route path="/payment-test" element={<PaymentTestPage />} />
-            </Routes>
-            </Suspense>
-        </BrowserRouter>
-        </ToastProvider>
-    );
+          {/* Donor routes */}
+          <Route
+            path="/donor"
+            element={
+              <ProtectedRoute allowedRoles={['donor']}>
+                <DonorLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<DonorDashboardPage />} />
+            <Route path="dashboard" element={<DonorDashboardPage />} />
+            <Route path="campaigns" element={<DonorCampaignListPage />} />
+            <Route path="ngos" element={<DonorNgoListPage />} />
+            <Route path="ngos/:ngoId" element={<DonorNgoProfilePage />} />
+            <Route path="reports" element={<DonorReportsPage />} />
+            <Route path="profile" element={<DonorProfilePage />} />
+            <Route path="contact" element={<ContactPage />} />
+            <Route path="settings" element={<DonorSettingsPage />} />
+          </Route>
+
+          {/* Standalone Shared Pages */}
+          <Route path="/share/profile/:shareId" element={<ShareProfilePage />} />
+          <Route path="/share/campaign/:shareId" element={<ShareCampaignPage />} />
+          <Route path="/task-manager" element={<TaskManagerPage />} />
+          <Route path="/payment-test" element={<PaymentTestPage />} />
+
+        </Routes>
+      </Suspense>
+
+      {/* Global AI Chatbot */}
+      <AIChatbot />
+
+    </BrowserRouter>
+  );
 };
 
 export default App;

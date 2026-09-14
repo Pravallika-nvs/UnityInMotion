@@ -206,6 +206,11 @@ router.get('/campaigns', auth(), async (req, res) => {
             req.query.category || ''
         ).trim();
 
+        const ngoId = String(
+            req.query.ngoId || ''
+        ).trim();
+
+        // Build the base query FIRST
         const query = {
             isActive: true,
             approvalStatus: 'approved',
@@ -214,6 +219,7 @@ router.get('/campaigns', auth(), async (req, res) => {
             }
         };
 
+        // Search filter
         if (search) {
             query.$or = [
                 {
@@ -237,12 +243,18 @@ router.get('/campaigns', auth(), async (req, res) => {
             ];
         }
 
+        // Category filter
         if (category) {
             query.category = category;
         }
 
+        // NGO filter
+        if (ngoId) {
+            query.ngoId = ngoId;
+        }
+
         console.log(
-            '🔵 Donor campaigns: starting query',
+            '🔵 Donor campaigns query:',
             query
         );
 
@@ -250,9 +262,11 @@ router.get('/campaigns', auth(), async (req, res) => {
             Campaign.find(query)
                 .populate(
                     'ngoId',
-                    'ngoName email logo contactNumber'
+                    'ngoName email logo contactNumber organizationName'
                 )
-                .sort({ createdAt: -1 })
+                .sort({
+                    createdAt: -1
+                })
                 .skip(skip)
                 .limit(limit)
                 .lean(),
@@ -432,6 +446,66 @@ router.get('/ngos', auth(), async (req, res) => {
     }
 });
 
+// ============================================================
+// GET SINGLE NGO PROFILE FOR DONOR
+// ============================================================
+
+router.get('/ngos/:id', auth(), async (req, res) => {
+    try {
+        console.log('🟣 Donor NGO profile route reached');
+
+        const { id } = req.params;
+
+        console.log('🟣 Requested NGO ID:', id);
+
+        const mongoose = require('mongoose');
+
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invalid NGO ID'
+            });
+        }
+
+        console.log('🟣 Searching NGO in MongoDB...');
+
+        const ngo = await NGO.findOne({
+            _id: id,
+            isActive: true
+        }).lean();
+
+        console.log(
+            '🟢 NGO query completed:',
+            ngo ? ngo.ngoName : 'NOT FOUND'
+        );
+
+        if (!ngo) {
+            return res.status(404).json({
+                success: false,
+                message: 'NGO not found'
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            data: {
+                ngo
+            }
+        });
+
+    } catch (error) {
+        console.error(
+            '🔴 Donor NGO profile error:',
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: 'Failed to fetch NGO profile',
+            error: error.message
+        });
+    }
+});
 
 // ============================================================
 // GET DONOR PROFILE

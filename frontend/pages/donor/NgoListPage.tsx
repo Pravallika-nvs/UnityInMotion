@@ -226,14 +226,14 @@ const DonorNgoListPage: React.FC = () => {
                                         <div className="flex justify-between items-center">
 
                                             <Link
-                                                to={`/ngo/${ngo._id}`}
+                                                to={`/donor/ngos/${ngo._id}`}
                                                 className="text-blue-600 hover:text-blue-700 font-medium text-sm"
                                             >
                                                 View Profile
                                             </Link>
 
                                             <Link
-                                                to={`/campaigns?ngo=${ngo._id}`}
+                                                to={`/donor/campaigns?ngo=${ngo._id}`}
                                                 className="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm"
                                             >
                                                 View Campaigns
