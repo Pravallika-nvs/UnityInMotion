@@ -64,7 +64,7 @@ const UserListPage = lazy(() => import('./pages/ngo/UserListPage.tsx'));
 const NgoReportsPage = lazy(() => import('./pages/ngo/ReportsPage.tsx'));
 const NgoProfilePage = lazy(() => import('./pages/ngo/ProfilePage.tsx'));
 const NgoSettingsPage = lazy(() => import('./pages/ngo/SettingsPage.tsx'));
-const NgoVolunteeringPage = lazy(() => import('./pages/ngo/VolunteeringPage.tsx'));
+//const NgoVolunteeringPage = lazy(() => import('./pages/ngo/VolunteeringPage.tsx'));
 import NgoUserListPage from './pages/ngo/UserListPage.tsx';
 
 // Company Pages (Lazy Loaded)
@@ -190,7 +190,6 @@ const App: React.FC = () => {
             <Route path="reports" element={<NgoReportsPage />} />
             <Route path="profile" element={<NgoProfilePage />} />
             <Route path="settings" element={<NgoSettingsPage />} />
-            <Route path="volunteering" element={<NgoVolunteeringPage />} />
             <Route path="contact" element={<ContactPage />} />
           </Route>
 

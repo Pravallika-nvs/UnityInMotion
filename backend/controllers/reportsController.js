@@ -278,100 +278,198 @@ class ReportsController {
 
     // Donation Reports
     static async getDonationReport(req, res) {
-        try {
-            const { 
-                startDate, 
-                endDate, 
-                status,
-                paymentMethod,
-                minAmount,
-                maxAmount,
-                donorId,
-                campaignId,
-                export: exportType 
-            } = req.query;
+    try {
+        const {
+            startDate,
+            endDate,
+            status,
+            paymentMethod,
+            minAmount,
+            maxAmount,
+            donorId,
+            campaignId,
+            export: exportType
+        } = req.query;
 
-            let query = {};
-            
-            if (startDate || endDate) {
-                query.donationDate = {};
-                if (startDate) query.donationDate.$gte = new Date(startDate);
-                if (endDate) query.donationDate.$lte = new Date(endDate);
+        const query = {};
+
+        // Date filters
+        if (startDate || endDate) {
+            query.donationDate = {};
+
+            if (startDate) {
+                query.donationDate.$gte = new Date(startDate);
             }
 
-            if (status) query.status = status;
-            if (paymentMethod) query.paymentMethod = paymentMethod;
-            if (donorId) query.donorId = donorId;
-            if (campaignId) query.campaignId = campaignId;
-            
-            if (minAmount || maxAmount) {
-                query.amount = {};
-                if (minAmount) query.amount.$gte = parseInt(minAmount);
-                if (maxAmount) query.amount.$lte = parseInt(maxAmount);
+            if (endDate) {
+                const end = new Date(endDate);
+
+                // Include the complete end date
+                end.setHours(23, 59, 59, 999);
+
+                query.donationDate.$lte = end;
             }
-
-            const donations = await Donation.find(query)
-                .populate('donorId', 'fullName email role')
-                .populate('campaignId', 'title campaignName ngoId')
-                .populate({
-                    path: 'campaignId',
-                    populate: {
-                        path: 'ngoId',
-                        select: 'ngoName'
-                    }
-                })
-                .sort({ donationDate: -1 });
-
-            const reportData = {
-                donations,
-                summary: {
-                    totalDonations: donations.length,
-                    totalAmount: donations.reduce((sum, d) => sum + d.amount, 0),
-                    averageAmount: donations.length > 0 ? donations.reduce((sum, d) => sum + d.amount, 0) / donations.length : 0,
-                    uniqueDonors: new Set(donations.map(d => d.donorId._id.toString())).size,
-                    uniqueCampaigns: new Set(donations.map(d => d.campaignId._id.toString())).size,
-                    paymentMethodDistribution: {},
-                    statusDistribution: {},
-                    monthlyTrends: {}
-                },
-                generatedAt: new Date()
-            };
-
-            // Generate distributions
-            donations.forEach(donation => {
-                // Payment method distribution
-                const method = donation.paymentMethod;
-                reportData.summary.paymentMethodDistribution[method] = (reportData.summary.paymentMethodDistribution[method] || 0) + 1;
-                
-                // Status distribution
-                const status = donation.status;
-                reportData.summary.statusDistribution[status] = (reportData.summary.statusDistribution[status] || 0) + 1;
-                
-                // Monthly trends
-                const month = donation.donationDate.toISOString().substring(0, 7);
-                if (!reportData.summary.monthlyTrends[month]) {
-                    reportData.summary.monthlyTrends[month] = { count: 0, amount: 0 };
-                }
-                reportData.summary.monthlyTrends[month].count += 1;
-                reportData.summary.monthlyTrends[month].amount += donation.amount;
-            });
-
-            if (exportType === 'pdf') {
-                return await ReportsController.generateDonationPDF(res, reportData);
-            } else if (exportType === 'excel') {
-                return await ReportsController.generateDonationExcel(res, reportData);
-            }
-
-            return createSuccessResponse(res, 200, {
-                message: "Donation report generated successfully",
-                ...reportData
-            });
-
-        } catch (error) {
-            console.error("Donation report error:", error);
-            return createErrorResponse(res, 500, "Failed to generate donation report", error.message);
         }
+
+        // Status filter
+        if (status) {
+            query.status = status;
+        }
+
+        // Payment method filter
+        if (paymentMethod) {
+            query.paymentMethod = paymentMethod;
+        }
+
+        // Donor filter
+        if (donorId) {
+            query.donorId = donorId;
+        }
+
+        // Campaign filter
+        if (campaignId) {
+            query.campaignId = campaignId;
+        }
+
+        // Amount filters
+        if (minAmount || maxAmount) {
+            query.amount = {};
+
+            if (minAmount) {
+                query.amount.$gte = Number(minAmount);
+            }
+
+            if (maxAmount) {
+                query.amount.$lte = Number(maxAmount);
+            }
+        }
+
+        const donations = await Donation.find(query)
+            .populate('donorId', 'fullName email role')
+            .populate('campaignId', 'title campaignName ngoId')
+            .populate({
+                path: 'campaignId',
+                populate: {
+                    path: 'ngoId',
+                    select: 'ngoName'
+                }
+            })
+            .sort({ donationDate: -1 });
+
+        // Safe calculations
+        const totalAmount = donations.reduce(
+            (sum, donation) =>
+                sum + (Number(donation.amount) || 0),
+            0
+        );
+
+        const averageAmount =
+            donations.length > 0
+                ? totalAmount / donations.length
+                : 0;
+
+        const uniqueDonors = new Set(
+            donations
+                .filter(donation => donation.donorId?._id)
+                .map(donation =>
+                    donation.donorId._id.toString()
+                )
+        ).size;
+
+        const uniqueCampaigns = new Set(
+            donations
+                .filter(donation => donation.campaignId?._id)
+                .map(donation =>
+                    donation.campaignId._id.toString()
+                )
+        ).size;
+
+        const reportData = {
+            donations,
+
+            summary: {
+                totalDonations: donations.length,
+                totalAmount,
+                averageAmount,
+                uniqueDonors,
+                uniqueCampaigns,
+                paymentMethodDistribution: {},
+                statusDistribution: {},
+                monthlyTrends: {}
+            },
+
+            generatedAt: new Date()
+        };
+
+        // Generate distributions
+        donations.forEach(donation => {
+
+            // Payment method distribution
+            const method =
+                donation.paymentMethod || 'Unknown';
+
+            reportData.summary.paymentMethodDistribution[method] =
+                (reportData.summary.paymentMethodDistribution[method] || 0) + 1;
+
+            // Status distribution
+            const donationStatus =
+                donation.status || 'Unknown';
+
+            reportData.summary.statusDistribution[donationStatus] =
+                (reportData.summary.statusDistribution[donationStatus] || 0) + 1;
+
+            // Monthly trends
+            if (donation.donationDate) {
+                const month =
+                    new Date(donation.donationDate)
+                        .toISOString()
+                        .substring(0, 7);
+
+                if (!reportData.summary.monthlyTrends[month]) {
+                    reportData.summary.monthlyTrends[month] = {
+                        count: 0,
+                        amount: 0
+                    };
+                }
+
+                reportData.summary.monthlyTrends[month].count += 1;
+
+                reportData.summary.monthlyTrends[month].amount +=
+                    Number(donation.amount) || 0;
+            }
+        });
+
+        // Export options
+        if (exportType === 'pdf') {
+            return await ReportsController.generateDonationPDF(
+                res,
+                reportData
+            );
+        }
+
+        if (exportType === 'excel') {
+            return await ReportsController.generateDonationExcel(
+                res,
+                reportData
+            );
+        }
+
+        return createSuccessResponse(res, 200, {
+            message: "Donation report generated successfully",
+            ...reportData
+        });
+
+    } catch (error) {
+        console.error("Donation report error:", error);
+
+        return createErrorResponse(
+            res,
+            500,
+            "Failed to generate donation report",
+            error.message
+        );
     }
+}
 
     // Financial Summary Report
     static async getFinancialReport(req, res) {

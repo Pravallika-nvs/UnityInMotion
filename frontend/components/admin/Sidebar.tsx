@@ -6,7 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { FiGrid, FiUsers, FiHeart, FiSettings, FiFileText, FiBell, FiChevronDown, FiChevronRight, FiList, FiPlusSquare, FiCheckSquare, FiSliders, FiShield, FiHardDrive, FiCalendar, FiDollarSign, FiPenTool } from 'react-icons/fi';
+import { FiGrid, FiUsers, FiHeart, FiFileText, FiBell, FiChevronDown, FiChevronRight, FiList, FiPlusSquare, FiCheckSquare, FiSliders, FiShield, FiHardDrive, FiCalendar, FiDollarSign, FiPenTool } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const menuItems = [
@@ -42,15 +42,6 @@ const menuItems = [
         path: '/admin/donations'
     },
     {
-        label: 'Notices',
-        icon: <FiBell />,
-        path: '/admin/notices',
-        subItems: [
-            { label: 'All Notices', to: '/admin/notices', icon: <FiList /> },
-            { label: 'Create Notice', to: '/admin/notices/new', icon: <FiPlusSquare /> }
-        ]
-    },
-    {
         label: 'Tasks',
         icon: <FiCheckSquare />,
         path: '/admin/tasks',
@@ -65,17 +56,6 @@ const menuItems = [
         to: '/admin/reports',
         isSingle: true,
         path: '/admin/reports'
-    },
-    {
-        label: 'Settings',
-        icon: <FiSettings />,
-        path: '/admin/settings',
-        subItems: [
-            { label: 'General', to: '/admin/settings', icon: <FiSliders /> },
-            { label: 'Appearance', to: '/admin/settings/appearance', icon: <FiPenTool /> },
-            { label: 'Security', to: '/admin/settings#security', icon: <FiShield /> },
-            { label: 'System', to: '/admin/settings#system', icon: <FiHardDrive /> }
-        ]
     },
 ];
 

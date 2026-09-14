@@ -27,7 +27,6 @@ const menuItems = [
             { label: 'Create Campaign', to: '/ngo/campaigns/new', icon: <FiPlusSquare /> }
         ]
     },
-    { label: 'Volunteering', icon: <FiUserPlus />, to: '/ngo/volunteering', isSingle: true, path: '/ngo/volunteering' },
     { label: 'Companies', icon: <FiBriefcase />, to: '/ngo/companies', isSingle: true, path: '/ngo/companies' },
     { label: 'Users', icon: <FiUsers />, to: '/ngo/users', isSingle: true, path: '/ngo/users' },
     { label: 'Reports', icon: <FiFileText />, to: '/ngo/reports', isSingle: true, path: '/ngo/reports' },
