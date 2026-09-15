@@ -254,6 +254,119 @@ router.post(
 
 
 // ============================================================
+// UPLOAD CAMPAIGN IMAGES
+// NGO ONLY
+//
+// The frontend creates the campaign first and then calls:
+//
+// POST /api/campaigns/:id/images
+//
+// This route handles that second step.
+// ============================================================
+router.post(
+    "/:id/images",
+    authMiddleware(["ngo"]),
+    upload.fields([
+        {
+            name: "images",
+            maxCount: 10
+        },
+        {
+            name: "campaignImage",
+            maxCount: 10
+        }
+    ]),
+    async (req, res) => {
+        try {
+            const campaignId = req.params.id;
+
+            const userId =
+                req.user._id || req.user.id;
+
+            // Find only a campaign belonging to
+            // the currently logged-in NGO/user.
+            const campaign =
+                await Campaign.findOne({
+                    _id: campaignId,
+                    createdBy: userId
+                });
+
+            if (!campaign) {
+                return res.status(404).json({
+                    message:
+                        "Campaign not found or unauthorized"
+                });
+            }
+
+            // Collect files regardless of whether
+            // frontend sends "images" or "campaignImage".
+            const uploadedFiles = [
+                ...(req.files?.images || []),
+                ...(req.files?.campaignImage || [])
+            ];
+
+            if (uploadedFiles.length === 0) {
+                return res.status(400).json({
+                    message:
+                        "No campaign images were uploaded"
+                });
+            }
+
+            // Convert uploaded files to paths.
+            const imagePaths =
+                uploadedFiles.map(
+                    file =>
+                        `/uploads/campaign/image/${file.filename}`
+                );
+
+            // Existing images are preserved.
+            const existingImages =
+                Array.isArray(campaign.images)
+                    ? campaign.images
+                    : [];
+
+            campaign.images = [
+                ...existingImages,
+                ...imagePaths
+            ];
+
+            // If the Campaign model uses "image"
+            // as the main image field, set the first
+            // uploaded image when one doesn't exist.
+            if (
+                !campaign.image &&
+                imagePaths.length > 0
+            ) {
+                campaign.image =
+                    imagePaths[0];
+            }
+
+            await campaign.save();
+
+            res.status(200).json({
+                message:
+                    "Campaign images uploaded successfully",
+                images: imagePaths,
+                campaign
+            });
+
+        } catch (error) {
+            console.error(
+                "Error uploading campaign images:",
+                error
+            );
+
+            res.status(500).json({
+                message:
+                    "Error uploading campaign images",
+                error: error.message
+            });
+        }
+    }
+);
+
+
+// ============================================================
 // UPDATE CAMPAIGN
 // NGO can update own campaign
 // Admin can update any campaign
