@@ -469,7 +469,7 @@ if (!name || !email || !subject || !message) {
                     />
 
                     <span>
-                      123 Charity Lane, New Delhi, 110001, India
+                      D No: 12345, Visakhapatnam - 530048, Andhra Pradesh, India
                     </span>
 
                   </p>
@@ -493,7 +493,7 @@ if (!name || !email || !subject || !message) {
                     />
 
                     <span>
-                      contact@donationhub.org
+                      unityinmotion9@gmail.com
                     </span>
 
                   </p>
@@ -503,17 +503,21 @@ if (!name || !email || !subject || !message) {
               </div>
 
               {/* Location */}
-              <div className="bg-white p-8 rounded-lg shadow-lg h-64">
+              <div className="w-full rounded-xl bg-white p-10">
+  <h2 className="text-2xl font-bold font-serif text-navy-blue mb-4">
+    Our Location
+  </h2>
 
-                <h3 className="text-2xl font-bold font-serif text-navy-blue mb-4">
-                  Our Location
-                </h3>
-
-                <div className="w-full h-full bg-warm-gray-200 rounded-md flex items-center justify-center text-warm-gray-500">
-                  Google Maps Embed Placeholder
-                </div>
-
-              </div>
+  <div className="w-full h-[480px] rounded-lg overflow-hidden">
+    <iframe
+      src="https://www.google.com/maps?q=GVP+College+of+Engineering,Visakhapatnam&output=embed"
+      className="block w-full h-full border-0"
+      loading="lazy"
+      allowFullScreen
+      referrerPolicy="no-referrer-when-downgrade"
+    ></iframe>
+  </div>
+</div>
 
             </div>
 

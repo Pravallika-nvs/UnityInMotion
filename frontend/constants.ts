@@ -7,10 +7,10 @@ export const TESTIMONIALS: Testimonial[] = [
 ];
 
 export const TEAM_MEMBERS: TeamMember[] = [
-    { id: 1, name: 'Aarav Mehta', role: 'Founder & CEO', imageUrl: 'https://picsum.photos/seed/aarav/400' },
-    { id: 2, name: 'Saanvi Gupta', role: 'Head of Operations', imageUrl: 'https://picsum.photos/seed/saanvi/400' },
-    { id: 3, name: 'Vikram Singh', role: 'Chief Technology Officer', imageUrl: 'https://picsum.photos/seed/vikram/400' },
-    { id: 4, name: 'Diya Patel', role: 'Head of Partnerships', imageUrl: 'https://picsum.photos/seed/diya/400' },
+    { id: 1, name: 'Mouli', role: '323103310128', imageUrl: 'https://picsum.photos/seed/aarav/400' },
+    { id: 2, name: 'Rithika', role: '323103310129', imageUrl: 'https://picsum.photos/seed/saanvi/400' },
+    { id: 3, name: 'Munisha', role: '323103310155', imageUrl: 'https://picsum.photos/seed/vikram/400' },
+    { id: 4, name: 'Pravallika', role: '323103310169', imageUrl: 'https://picsum.photos/seed/diya/400' },
 ];
 
 export const LEGAL_DOCS: PolicyDocument[] = [
