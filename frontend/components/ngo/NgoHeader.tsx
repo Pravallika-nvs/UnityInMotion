@@ -41,9 +41,6 @@ const NgoHeader: React.FC = () => {
             </div>
 
             <div className="flex items-center gap-4">
-                <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-full text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-brand-dark">
-                    <FiCalendar size={20} />
-                </button>
                 <ThemeToggle />
                 <div ref={profileMenuRef} className="relative">
                     <button
@@ -72,9 +69,6 @@ const NgoHeader: React.FC = () => {
                                 <div className="py-1">
                                     <Link to="/ngo/profile" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-dark" role="menuitem">
                                         <FiUser className="mr-3"/> My Profile
-                                    </Link>
-                                    <Link to="/ngo/settings" onClick={() => setIsProfileMenuOpen(false)} className="flex items-center w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-brand-dark" role="menuitem">
-                                        <FiSettings className="mr-3"/> Settings
                                     </Link>
                                 </div>
                                 <div className="py-1 border-t border-gray-200 dark:border-gray-600">
